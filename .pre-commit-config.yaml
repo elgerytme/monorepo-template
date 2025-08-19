@@ -1,0 +1,141 @@
+# Pre-commit hooks configuration for security and quality checks
+# See https://pre-commit.com for more information
+
+repos:
+  # Rust-specific hooks
+  - repo: local
+    hooks:
+      # Rust formatting
+      - id: rustfmt
+        name: Rust formatting
+        entry: cargo fmt
+        language: system
+        files: \.rs$
+        args: [--check]
+
+      # Rust linting with security focus
+      - id: clippy
+        name: Rust linting (Clippy)
+        entry: cargo clippy
+        language: system
+        files: \.rs$
+        args: [
+          --all-targets,
+          --all-features,
+          --,
+          -D, warnings,
+          -D, clippy::all,
+          -D, clippy::pedantic,
+          -D, clippy::nursery,
+          -W, clippy::cargo
+        ]
+
+      # Dependency vulnerability scanning
+      - id: cargo-audit
+        name: Cargo audit (vulnerability scan)
+        entry: scripts/security/vulnerability-scan.sh
+        language: system
+        files: Cargo\.(toml|lock)$
+        pass_filenames: false
+
+      # Secret detection
+      - id: secret-detection
+        name: Secret detection
+        entry: scripts/security/secret-detection.sh
+        language: system
+        files: .*
+        pass_filenames: false
+
+      # Security policy enforcement
+      - id: security-policy
+        name: Security policy enforcement
+        entry: scripts/security/security-policy.sh
+        language: system
+        files: .*
+        pass_filenames: false
+
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # Basic file checks
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-toml
+      - id: check-json
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+
+      # Security-related checks
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+
+  # Additional security hooks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+        exclude: |
+          (?x)^(
+            \.secrets\.baseline|
+            \.git/.*|
+            target/.*|
+            node_modules/.*
+          )$
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yml]
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.35.0
+    hooks:
+      - id: markdownlint
+        args: [--config=.markdownlint.yml]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5
+    hooks:
+      - id: shellcheck
+        args: [-e, SC1091, -e, SC2034]
+
+  # Commit message linting
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.6.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+# Configuration for specific hooks
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

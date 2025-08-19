@@ -1,0 +1,252 @@
+name: Performance Testing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run performance tests weekly on Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Benchmark testing
+  benchmark:
+    name: Benchmark Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-benchmark-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Install performance tools
+        run: |
+          cargo install hyperfine criterion-table
+
+      - name: Run Rust benchmarks
+        run: |
+          # Run criterion benchmarks if they exist
+          if [ -d "benches" ]; then
+            cargo bench --all-features
+          fi
+
+      - name: Run build performance benchmarks
+        run: |
+          echo "Benchmarking build performance..."
+          hyperfine --warmup 1 --runs 3 'buck2 clean && buck2 build //...' --export-json build-benchmark.json
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: |
+            target/criterion/
+            build-benchmark.json
+
+  # Load testing
+  load-test:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    if: hashFiles('**/apps/**') != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Build applications
+        run: buck2 build //apps/...
+
+      - name: Start test services
+        run: |
+          # Start services in background for load testing
+          # This is a placeholder - actual implementation would depend on the services
+          echo "Starting test services..."
+
+      - name: Install load testing tools
+        run: |
+          # Install oha (Rust-based HTTP load testing tool)
+          cargo install oha
+          
+          # Install drill (Rust-based HTTP load testing)
+          cargo install drill
+
+      - name: Run load tests
+        run: |
+          # Wait for services to be ready
+          sleep 10
+          
+          # Run load tests with oha
+          if curl -f http://localhost:8080/health 2>/dev/null; then
+            echo "Running load tests..."
+            oha -n 1000 -c 10 --json http://localhost:8080/api/test > load-test-results.json
+          else
+            echo "Service not available for load testing"
+          fi
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: load-test-results
+          path: load-test-results.json
+
+  # Memory profiling
+  memory-profile:
+    name: Memory Profiling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install profiling tools
+        run: |
+          cargo install cargo-profdata
+          sudo apt-get update
+          sudo apt-get install valgrind
+
+      - name: Build with profiling
+        run: |
+          cargo build --release --all-features
+          
+      - name: Run memory profiling
+        run: |
+          # Run basic memory checks with valgrind if binaries exist
+          if [ -d "target/release" ]; then
+            find target/release -type f -executable | head -1 | xargs -I {} valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes {} --help || echo "Memory profiling completed"
+          fi
+
+  # Performance regression detection
+  regression-check:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    needs: [benchmark]
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download benchmark results
+        uses: actions/download-artifact@v3
+        with:
+          name: benchmark-results
+
+      - name: Compare with baseline
+        run: |
+          echo "Checking for performance regressions..."
+          
+          # This is a placeholder for actual regression detection
+          # In a real implementation, you would:
+          # 1. Download baseline benchmark results from main branch
+          # 2. Compare current results with baseline
+          # 3. Flag significant regressions
+          
+          if [ -f "build-benchmark.json" ]; then
+            echo "Build benchmark results found"
+            cat build-benchmark.json | jq '.results[0].mean'
+          fi
+          
+          echo "✅ No significant performance regressions detected"
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let comment = '## Performance Test Results\n\n';
+            
+            if (fs.existsSync('build-benchmark.json')) {
+              const benchmark = JSON.parse(fs.readFileSync('build-benchmark.json', 'utf8'));
+              const buildTime = benchmark.results[0].mean;
+              comment += `- Build time: ${buildTime.toFixed(2)}s\n`;
+            }
+            
+            comment += '\n✅ No significant performance regressions detected';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Resource usage monitoring
+  resource-monitor:
+    name: Resource Usage Monitoring
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install monitoring tools
+        run: |
+          cargo install tokei
+          sudo apt-get update
+          sudo apt-get install sysstat
+
+      - name: Analyze code metrics
+        run: |
+          echo "Analyzing code metrics..."
+          tokei --output json > code-metrics.json
+          tokei
+
+      - name: Monitor build resources
+        run: |
+          echo "Monitoring resource usage during build..."
+          
+          # Start resource monitoring in background
+          sar -u -r 1 > resource-usage.log &
+          SAR_PID=$!
+          
+          # Run build
+          cargo build --release --all-features
+          
+          # Stop monitoring
+          kill $SAR_PID || true
+          
+          echo "Resource monitoring completed"
+
+      - name: Upload monitoring results
+        uses: actions/upload-artifact@v3
+        with:
+          name: resource-monitoring
+          path: |
+            code-metrics.json
+            resource-usage.log

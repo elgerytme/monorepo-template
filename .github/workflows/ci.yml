@@ -1,0 +1,211 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Code validation job - formatting, linting, type checking
+  validate:
+    name: Code Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Install additional tools
+        run: |
+          cargo install dprint typos-cli fd-find ripgrep
+
+      - name: Check formatting (Rust)
+        run: cargo fmt --all -- --check
+
+      - name: Check formatting (Multi-language)
+        run: dprint check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Check typos
+        run: typos
+
+      - name: Type checking (Buck2)
+        run: buck2 build //...
+
+  # Automated testing with parallel execution
+  test:
+    name: Automated Testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust-version: [stable, beta]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-version }}
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.rust-version }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Install nextest
+        run: cargo install cargo-nextest
+
+      - name: Run unit tests
+        run: cargo nextest run --all-features
+
+      - name: Run integration tests
+        run: buck2 test //... --test-runner-env RUST_BACKTRACE=1
+
+      - name: Run doctests
+        run: cargo test --doc
+
+  # Security scanning with Rust-based tools
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-security-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install security tools
+        run: |
+          cargo install cargo-audit cargo-deny
+
+      - name: Run cargo audit
+        run: cargo audit
+
+      - name: Run cargo deny
+        run: cargo deny check
+
+      - name: Secret scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+      - name: Container security scan
+        if: github.event_name == 'push'
+        run: |
+          # Install trivy for container scanning
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+          
+          # Scan Dockerfile if it exists
+          if [ -f "Dockerfile" ]; then
+            trivy config .
+          fi
+
+  # Build job for artifacts
+  build:
+    name: Build Artifacts
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    needs: [validate, test, security]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-build-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Buck2 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Install Buck2 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-apple-darwin.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Install Buck2 (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-pc-windows-msvc.exe -o buck2.exe
+          move buck2.exe C:\Windows\System32\
+
+      - name: Build all targets
+        run: buck2 build //...
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ matrix.os }}
+          path: |
+            buck-out/
+            target/release/
+          retention-days: 7

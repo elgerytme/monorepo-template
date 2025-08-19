@@ -1,0 +1,342 @@
+name: Automated Release Management
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+      skip_build:
+        description: 'Skip artifact building'
+        required: false
+        default: false
+        type: boolean
+      force_release:
+        description: 'Force release even if no changes detected'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Version analysis job
+  analyze-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.version-check.outputs.should_release }}
+      version_type: ${{ steps.version-check.outputs.version_type }}
+      new_version: ${{ steps.version-check.outputs.new_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up release tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          
+      - name: Analyze version requirements
+        id: version-check
+        run: |
+          chmod +x scripts/release/version-manager.sh
+          
+          # Determine release type
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+            FORCE_RELEASE="${{ github.event.inputs.force_release }}"
+          else
+            RELEASE_TYPE="auto"
+            FORCE_RELEASE="false"
+          fi
+          
+          # Analyze commits for version increment
+          VERSION_TYPE=$(./scripts/release/version-manager.sh analyze)
+          
+          if [[ "$VERSION_TYPE" == "none" && "$FORCE_RELEASE" != "true" ]]; then
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No changes detected, skipping release"
+          else
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            
+            if [[ "$RELEASE_TYPE" != "auto" ]]; then
+              VERSION_TYPE="$RELEASE_TYPE"
+            fi
+            
+            echo "version_type=$VERSION_TYPE" >> $GITHUB_OUTPUT
+            
+            # Get what the new version would be
+            CURRENT_VERSION=$(./scripts/release/version-manager.sh current)
+            echo "Current version: $CURRENT_VERSION"
+            echo "Detected version type: $VERSION_TYPE"
+          fi
+
+  # Build and test job
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: analyze-version
+    if: needs.analyze-version.outputs.should_release == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install build tools
+        run: |
+          # Install just command runner
+          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+          
+          # Install additional Rust tools
+          cargo install cargo-audit cargo-deny
+          
+      - name: Run quality checks
+        run: |
+          # Format check
+          cargo fmt --all -- --check
+          
+          # Lint check
+          cargo clippy --all-targets --all-features -- -D warnings
+          
+          # Security audit
+          cargo audit
+          
+          # Dependency analysis
+          cargo deny check
+
+      - name: Run tests
+        run: |
+          cargo test --all-features --workspace
+
+      - name: Build artifacts
+        if: github.event.inputs.skip_build != 'true'
+        run: |
+          # Create artifacts directory
+          mkdir -p artifacts
+          
+          # Build release binaries
+          cargo build --release --all-features
+          
+          # Package artifacts
+          tar -czf artifacts/release-binaries.tar.gz -C target/release .
+          
+          # Create checksums
+          cd artifacts
+          sha256sum *.tar.gz > checksums.sha256
+
+      - name: Upload build artifacts
+        if: github.event.inputs.skip_build != 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-artifacts
+          path: artifacts/
+          retention-days: 30
+
+  # Release job
+  release:
+    runs-on: ubuntu-latest
+    needs: [analyze-version, build-and-test]
+    if: needs.analyze-version.outputs.should_release == 'true'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Download build artifacts
+        if: github.event.inputs.skip_build != 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: release-artifacts
+          path: artifacts/
+
+      - name: Set up release tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq gpg
+          
+          # Install Cosign for artifact signing
+          curl -O -L "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64"
+          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+          sudo chmod +x /usr/local/bin/cosign
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "Release Bot"
+          git config --global user.email "release-bot@example.com"
+
+      - name: Set up GPG key for signing
+        if: env.GPG_PRIVATE_KEY != ''
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          echo "GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | head -1 | sed 's/.*\/\([A-F0-9]*\).*/\1/')" >> $GITHUB_ENV
+
+      - name: Perform release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          GPG_KEY_ID: ${{ env.GPG_KEY_ID }}
+        run: |
+          chmod +x scripts/release/*.sh
+          
+          # Determine skip build flag
+          SKIP_BUILD_FLAG=""
+          if [[ "${{ github.event.inputs.skip_build }}" == "true" ]]; then
+            SKIP_BUILD_FLAG="--skip-build"
+          fi
+          
+          # Perform the release
+          ./scripts/release/release-orchestrator.sh release ${{ needs.analyze-version.outputs.version_type }} $SKIP_BUILD_FLAG
+
+      - name: Get release version
+        id: get-version
+        run: |
+          VERSION=$(./scripts/release/version-manager.sh current)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get-version.outputs.version }}
+          release_name: Release v${{ steps.get-version.outputs.version }}
+          body_path: releases/v${{ steps.get-version.outputs.version }}.md
+          draft: false
+          prerelease: false
+
+      - name: Upload release artifacts
+        if: github.event.inputs.skip_build != 'true'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/release-binaries.tar.gz
+          asset_name: release-binaries-v${{ steps.get-version.outputs.version }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload checksums
+        if: github.event.inputs.skip_build != 'true'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/checksums.sha256
+          asset_name: checksums-v${{ steps.get-version.outputs.version }}.sha256
+          asset_content_type: text/plain
+
+      - name: Upload signatures
+        if: github.event.inputs.skip_build != 'true' && env.GPG_KEY_ID != ''
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/release-binaries.tar.gz.sig
+          asset_name: release-binaries-v${{ steps.get-version.outputs.version }}.tar.gz.sig
+          asset_content_type: application/pgp-signature
+
+  # Health monitoring and rollback job
+  monitor-release:
+    runs-on: ubuntu-latest
+    needs: [analyze-version, release]
+    if: needs.analyze-version.outputs.should_release == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Monitor release health
+        timeout-minutes: 10
+        run: |
+          chmod +x scripts/release/*.sh
+          
+          VERSION=$(./scripts/release/version-manager.sh current)
+          echo "Monitoring release health for version $VERSION"
+          
+          # Start health monitoring
+          ./scripts/release/rollback-manager.sh monitor "$VERSION" "basic" 300
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Release health check failed, initiating rollback"
+          ./scripts/release/rollback-manager.sh rollback
+
+  # Notification job
+  notify:
+    runs-on: ubuntu-latest
+    needs: [analyze-version, release, monitor-release]
+    if: always() && needs.analyze-version.outputs.should_release == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Send success notification
+        if: needs.release.result == 'success' && needs.monitor-release.result == 'success'
+        run: |
+          VERSION=$(./scripts/release/version-manager.sh current)
+          echo "✅ Release v$VERSION completed successfully"
+          
+          # Send webhook notification if configured
+          if [[ -n "${{ secrets.RELEASE_WEBHOOK_URL }}" ]]; then
+            curl -X POST -H "Content-Type: application/json" \
+              -d "{\"text\":\"✅ Release v$VERSION completed successfully\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+              "${{ secrets.RELEASE_WEBHOOK_URL }}"
+          fi
+
+      - name: Send failure notification
+        if: needs.release.result == 'failure' || needs.monitor-release.result == 'failure'
+        run: |
+          echo "❌ Release failed"
+          
+          # Send webhook notification if configured
+          if [[ -n "${{ secrets.RELEASE_WEBHOOK_URL }}" ]]; then
+            curl -X POST -H "Content-Type: application/json" \
+              -d "{\"text\":\"❌ Release failed - manual intervention required\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
+              "${{ secrets.RELEASE_WEBHOOK_URL }}"
+          fi

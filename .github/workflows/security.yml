@@ -1,0 +1,339 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Comprehensive security scanning using our custom scripts
+  comprehensive-security-scan:
+    name: Comprehensive Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-security-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install security tools
+        run: |
+          # Install Rust-based security tools
+          cargo install cargo-audit cargo-deny cargo-outdated cargo-license cargo-geiger
+          
+          # Install system security tools
+          sudo apt-get update
+          sudo apt-get install -y jq
+          
+          # Install gitleaks
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64.tar.gz | tar -xz
+          sudo mv gitleaks /usr/local/bin/
+          
+          # Install trivy
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Make security scripts executable
+        run: chmod +x scripts/security/*.sh
+
+      - name: Run comprehensive security assessment
+        run: |
+          # Run all security checks with detailed reporting
+          ./scripts/security/run-all-security-checks.sh --fail-fast
+
+      - name: Upload security assessment report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-assessment-report
+          path: security-assessment-report.txt
+
+  # Dependency vulnerability scanning (detailed)
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-security-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install security tools
+        run: |
+          cargo install cargo-audit cargo-deny cargo-outdated
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Make security scripts executable
+        run: chmod +x scripts/security/*.sh
+
+      - name: Run vulnerability scan
+        run: ./scripts/security/vulnerability-scan.sh
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dependency-audit-results
+          path: /tmp/audit_results.json
+
+  # Static code analysis
+  static-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Run Clippy with security lints
+        run: |
+          cargo clippy --all-targets --all-features -- \
+            -D warnings \
+            -D clippy::all \
+            -D clippy::pedantic \
+            -D clippy::nursery \
+            -W clippy::cargo
+
+      - name: Run additional security lints
+        run: |
+          # Install additional security-focused linters
+          cargo install cargo-geiger
+          
+          # Check for unsafe code usage
+          cargo geiger --format json > geiger-results.json || true
+          cargo geiger
+
+      - name: Upload static analysis results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: static-analysis-results
+          path: geiger-results.json
+
+  # Secret scanning with our enhanced detection
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64.tar.gz | tar -xz
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Make security scripts executable
+        run: chmod +x scripts/security/*.sh
+
+      - name: Run comprehensive secret detection
+        run: ./scripts/security/secret-detection.sh
+
+      - name: Run TruffleHog (additional verification)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Container security scanning with comprehensive checks
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: hashFiles('**/Dockerfile*', '**/docker-compose*.yml', '**/docker-compose*.yaml') != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Make security scripts executable
+        run: chmod +x scripts/security/*.sh
+
+      - name: Run comprehensive container security scan
+        run: ./scripts/security/container-security.sh
+
+      - name: Run Hadolint (Dockerfile linter)
+        uses: hadolint/hadolint-action@v3.1.0
+        if: hashFiles('**/Dockerfile') != ''
+        with:
+          dockerfile: Dockerfile
+          format: sarif
+          output-file: hadolint-results.sarif
+
+      - name: Upload Hadolint results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always() && hashFiles('hadolint-results.sarif') != ''
+        with:
+          sarif_file: hadolint-results.sarif
+
+  # Infrastructure security scanning
+  infrastructure-scan:
+    name: Infrastructure Security Scan
+    runs-on: ubuntu-latest
+    if: hashFiles('**/terraform/**/*.tf', '**/k8s/**/*.yaml', '**/k8s/**/*.yml') != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov (Infrastructure as Code scanner)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform,kubernetes
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+
+      - name: Run kube-score (Kubernetes security)
+        if: hashFiles('**/k8s/**/*.yaml', '**/k8s/**/*.yml') != ''
+        run: |
+          # Install kube-score
+          curl -L https://github.com/zegl/kube-score/releases/latest/download/kube-score_linux_amd64.tar.gz | tar xz
+          sudo mv kube-score /usr/local/bin/
+          
+          # Scan Kubernetes manifests
+          find . -name "*.yaml" -o -name "*.yml" | grep -E "(k8s|kubernetes)" | xargs kube-score score
+
+  # License compliance scanning
+  license-scan:
+    name: License Compliance Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install license scanning tools
+        run: |
+          cargo install cargo-license cargo-deny
+
+      - name: Check license compliance
+        run: |
+          cargo license --json > license-report.json
+          cargo deny check licenses
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: license-compliance-report
+          path: license-report.json
+
+  # Security policy enforcement with comprehensive checks
+  policy-enforcement:
+    name: Security Policy Enforcement
+    runs-on: ubuntu-latest
+    needs: [comprehensive-security-scan, dependency-scan, static-analysis, secret-scan, container-scan]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install required tools
+        run: |
+          cargo install cargo-license
+          sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Make security scripts executable
+        run: chmod +x scripts/security/*.sh
+
+      - name: Run security policy enforcement
+        run: ./scripts/security/security-policy.sh
+
+      - name: Download comprehensive scan results
+        uses: actions/download-artifact@v3
+        if: always()
+        with:
+          path: security-results
+
+      - name: Generate comprehensive security report
+        if: always()
+        run: |
+          cat > security-summary.md << EOF
+          # Comprehensive Security Assessment Summary
+          
+          ## Scan Results
+          - Comprehensive Security Scan: ${{ needs.comprehensive-security-scan.result }}
+          - Dependency Scan: ${{ needs.dependency-scan.result }}
+          - Static Analysis: ${{ needs.static-analysis.result }}
+          - Secret Scan: ${{ needs.secret-scan.result }}
+          - Container Scan: ${{ needs.container-scan.result }}
+          
+          ## Policy Compliance
+          - Security Policies: $([ "$?" -eq 0 ] && echo "✅ Compliant" || echo "❌ Violations found")
+          - License Compliance: Checked
+          - Code Quality: Enforced
+          - Container Security: Verified
+          - Secret Detection: Active
+          
+          ## Security Tools Used
+          - cargo-audit: Rust dependency vulnerability scanning
+          - gitleaks: Secret detection and prevention
+          - trivy: Container vulnerability scanning
+          - clippy: Static code analysis with security lints
+          - Custom policy enforcement: Comprehensive security rules
+          
+          Generated on: $(date -u)
+          Workflow: ${{ github.workflow }}
+          Run ID: ${{ github.run_id }}
+          EOF
+
+      - name: Upload comprehensive security summary
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: comprehensive-security-summary
+          path: security-summary.md

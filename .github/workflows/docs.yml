@@ -1,0 +1,317 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'libs/**'
+      - 'docs/**'
+      - 'scripts/docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'libs/**'
+      - 'docs/**'
+      - 'scripts/docs/**'
+      - '.github/workflows/docs.yml'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install documentation tools
+        run: |
+          npm install -g typedoc swagger-codegen-cli
+          
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-docs-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-docs-
+            ${{ runner.os }}-cargo-
+      
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | \
+            zstd -d -o /usr/local/bin/buck2
+          chmod +x /usr/local/bin/buck2
+          buck2 --version
+      
+      - name: Generate documentation
+        run: |
+          chmod +x scripts/docs/generate-docs.sh
+          ./scripts/docs/generate-docs.sh
+      
+      - name: Check documentation quality
+        run: |
+          # Check for missing documentation warnings
+          if cargo doc --workspace --no-deps 2>&1 | grep -i "missing"; then
+            echo "::warning::Some items are missing documentation"
+          fi
+          
+          # Check for broken internal links (basic check)
+          find target/docs -name "*.html" -exec grep -l "href.*#.*not.*found" {} \; || true
+      
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: target/docs/
+          retention-days: 30
+      
+      - name: Deploy to GitHub Pages (main branch only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/docs
+          destination_dir: docs
+          keep_files: false
+          commit_message: 'docs: update documentation [skip ci]'
+      
+      - name: Comment on PR with documentation preview
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { owner, repo, number } = context.issue;
+            const runId = context.runId;
+            
+            const comment = `## 📚 Documentation Preview
+            
+            Documentation has been generated for this PR. You can preview it by:
+            
+            1. Downloading the documentation artifact from the [workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})
+            2. Extracting the zip file and opening \`index.html\` in your browser
+            
+            ### Generated Documentation Includes:
+            - 🦀 Rust API documentation
+            - 📘 TypeScript API documentation  
+            - 🌐 OpenAPI specifications
+            - 📚 Architecture and runbook documentation
+            
+            The documentation will be automatically deployed to GitHub Pages when this PR is merged.`;
+            
+            // Check if we already commented
+            const comments = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: number,
+            });
+            
+            const existingComment = comments.data.find(
+              comment => comment.user.login === 'github-actions[bot]' && 
+                        comment.body.includes('Documentation Preview')
+            );
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: number,
+                body: comment
+              });
+            }
+
+  lint-docs:
+    name: Lint Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install documentation linting tools
+        run: |
+          npm install -g markdownlint-cli2 swagger-cli
+          
+      - name: Install typos
+        run: |
+          curl -LsSf https://github.com/crate-ci/typos/releases/latest/download/typos-x86_64-unknown-linux-musl.tar.gz | tar xzf - -C /usr/local/bin
+      
+      - name: Lint Markdown files
+        run: |
+          markdownlint-cli2 "docs/**/*.md" "*.md"
+      
+      - name: Check spelling
+        run: |
+          typos docs/
+      
+      - name: Validate OpenAPI specifications
+        run: |
+          if [ -d "docs/api/openapi" ]; then
+            for spec in docs/api/openapi/*.{yaml,yml}; do
+              if [ -f "$spec" ]; then
+                echo "Validating $spec"
+                swagger-cli validate "$spec"
+              fi
+            done
+          else
+            echo "No OpenAPI specifications found to validate"
+          fi
+      
+      - name: Check for broken links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/markdown-link-check-config.json'
+          folder-path: 'docs'
+
+  security-scan-docs:
+    name: Security Scan Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Scan for secrets in documentation
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./docs
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+      
+      - name: Check for sensitive information
+        run: |
+          # Check for potential sensitive information in docs
+          if grep -r -i -E "(password|secret|key|token|api_key)" docs/ --exclude-dir=.git; then
+            echo "::warning::Potential sensitive information found in documentation"
+          fi
+          
+          # Check for internal URLs or IPs
+          if grep -r -E "https?://[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" docs/ --exclude-dir=.git; then
+            echo "::warning::Internal IP addresses found in documentation"
+          fi
+
+  accessibility-check:
+    name: Accessibility Check
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+          path: target/docs/
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install accessibility tools
+        run: |
+          npm install -g @axe-core/cli
+      
+      - name: Run accessibility checks
+        run: |
+          # Start a simple HTTP server
+          npx http-server target/docs -p 8080 &
+          SERVER_PID=$!
+          
+          # Wait for server to start
+          sleep 5
+          
+          # Run axe accessibility checks
+          axe http://localhost:8080 --exit
+          
+          # Clean up
+          kill $SERVER_PID
+
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download documentation artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: documentation
+          path: target/docs/
+      
+      - name: Check documentation size
+        run: |
+          # Check total documentation size
+          TOTAL_SIZE=$(du -sh target/docs | cut -f1)
+          echo "Total documentation size: $TOTAL_SIZE"
+          
+          # Check for large files
+          find target/docs -type f -size +10M -exec ls -lh {} \; | while read line; do
+            echo "::warning::Large file found: $line"
+          done
+          
+          # Check for excessive number of files
+          FILE_COUNT=$(find target/docs -type f | wc -l)
+          echo "Total files: $FILE_COUNT"
+          
+          if [ $FILE_COUNT -gt 10000 ]; then
+            echo "::warning::Large number of files ($FILE_COUNT) in documentation"
+          fi
+      
+      - name: Analyze HTML performance
+        run: |
+          # Check for common performance issues in HTML
+          find target/docs -name "*.html" -exec grep -l "style=" {} \; | while read file; do
+            echo "::warning::Inline styles found in $file"
+          done
+          
+          find target/docs -name "*.html" -exec grep -l "script.*src.*http" {} \; | while read file; do
+            echo "::warning::External scripts found in $file"
+          done

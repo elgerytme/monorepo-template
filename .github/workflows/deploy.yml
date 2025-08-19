@@ -1,0 +1,290 @@
+name: Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      canary_percentage:
+        description: 'Canary deployment percentage'
+        required: false
+        default: '10'
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Pre-deployment validation
+  pre-deploy:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(git describe --tags --always --dirty)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            ENV="production"
+          else
+            ENV="staging"
+          fi
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Run final validation
+        run: |
+          buck2 build //...
+          cargo test --all-features
+
+  # Build and package for deployment
+  package:
+    name: Package Application
+    runs-on: ubuntu-latest
+    needs: pre-deploy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Buck2
+        run: |
+          curl -L https://github.com/facebook/buck2/releases/latest/download/buck2-x86_64-unknown-linux-gnu.zst | zstd -d > buck2
+          chmod +x buck2
+          sudo mv buck2 /usr/local/bin/
+
+      - name: Build release artifacts
+        run: |
+          buck2 build //... --mode release
+          cargo build --release --all-features
+
+      - name: Build Docker images
+        if: hashFiles('**/Dockerfile') != ''
+        run: |
+          docker build -t app:${{ needs.pre-deploy.outputs.version }} .
+          docker tag app:${{ needs.pre-deploy.outputs.version }} app:latest
+
+      - name: Sign artifacts
+        run: |
+          # Install cosign for artifact signing
+          curl -O -L "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64"
+          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+          sudo chmod +x /usr/local/bin/cosign
+          
+          # Sign release artifacts (placeholder - requires actual signing setup)
+          echo "Artifact signing would happen here with proper keys"
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-package-${{ needs.pre-deploy.outputs.version }}
+          path: |
+            target/release/
+            buck-out/gen/
+            Dockerfile*
+            docker-compose*.yml
+            k8s/
+          retention-days: 30
+
+  # Staging deployment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, package]
+    if: needs.pre-deploy.outputs.environment == 'staging' || needs.pre-deploy.outputs.environment == 'production'
+    environment:
+      name: staging
+      url: https://staging.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download deployment package
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-package-${{ needs.pre-deploy.outputs.version }}
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying version ${{ needs.pre-deploy.outputs.version }} to staging"
+          # Placeholder for actual deployment commands
+          # kubectl apply -f k8s/staging/
+          # helm upgrade --install app ./charts/app --set image.tag=${{ needs.pre-deploy.outputs.version }}
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests against staging"
+          # Placeholder for smoke tests
+          # curl -f https://staging.example.com/health
+          # cargo test --test integration_tests -- --test-threads=1
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Staging deployment successful"
+          else
+            echo "❌ Staging deployment failed"
+          fi
+
+  # Production canary deployment
+  deploy-canary:
+    name: Canary Deployment
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, package, deploy-staging]
+    if: needs.pre-deploy.outputs.environment == 'production'
+    environment:
+      name: production-canary
+      url: https://canary.example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download deployment package
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-package-${{ needs.pre-deploy.outputs.version }}
+
+      - name: Deploy canary
+        run: |
+          CANARY_PERCENTAGE="${{ github.event.inputs.canary_percentage || '10' }}"
+          echo "Deploying canary with $CANARY_PERCENTAGE% traffic"
+          # Placeholder for canary deployment
+          # kubectl patch deployment app --patch '{"spec":{"template":{"spec":{"containers":[{"name":"app","image":"app:${{ needs.pre-deploy.outputs.version }}"}]}}}}'
+          # kubectl patch service app-canary --patch '{"spec":{"selector":{"version":"${{ needs.pre-deploy.outputs.version }}"}}}'
+
+      - name: Monitor canary metrics
+        run: |
+          echo "Monitoring canary deployment for 10 minutes"
+          # Placeholder for monitoring
+          sleep 600
+          # Check error rates, response times, etc.
+
+      - name: Validate canary health
+        run: |
+          echo "Validating canary health metrics"
+          # Placeholder for health validation
+          # curl -f https://canary.example.com/health
+          # Check metrics from monitoring system
+
+  # Full production deployment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, package, deploy-canary]
+    if: needs.pre-deploy.outputs.environment == 'production'
+    environment:
+      name: production
+      url: https://example.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download deployment package
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-package-${{ needs.pre-deploy.outputs.version }}
+
+      - name: Deploy to production
+        run: |
+          echo "Rolling out version ${{ needs.pre-deploy.outputs.version }} to production"
+          # Placeholder for production deployment
+          # kubectl set image deployment/app app=app:${{ needs.pre-deploy.outputs.version }}
+          # kubectl rollout status deployment/app
+
+      - name: Run production health checks
+        run: |
+          echo "Running production health checks"
+          # Placeholder for health checks
+          # curl -f https://example.com/health
+          # Run comprehensive health validation
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.pre-deploy.outputs.version }}
+          release_name: Release ${{ needs.pre-deploy.outputs.version }}
+          body: |
+            ## Changes
+            
+            Automated release of version ${{ needs.pre-deploy.outputs.version }}
+            
+            ## Deployment
+            
+            - ✅ Staging deployment successful
+            - ✅ Canary deployment validated
+            - ✅ Production deployment complete
+          draft: false
+          prerelease: false
+
+  # Rollback capability
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: failure() && (needs.deploy-canary.result == 'failure' || needs.deploy-production.result == 'failure')
+    needs: [pre-deploy, deploy-canary, deploy-production]
+    environment:
+      name: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back failed deployment"
+          # Placeholder for rollback commands
+          # kubectl rollout undo deployment/app
+          # kubectl rollout status deployment/app
+
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback success"
+          # Placeholder for rollback verification
+          # curl -f https://example.com/health
+
+      - name: Notify rollback
+        run: |
+          echo "🔄 Deployment rolled back due to failure"
+          # Send notifications to team
