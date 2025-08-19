@@ -1,0 +1,159 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Rust Binary",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/${input:rustBinaryName}",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "Rust: Build Debug"
+    },
+    {
+      "name": "Debug Rust Test",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/deps/${input:rustTestName}",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopOnEntry": false,
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "Rust: Build Tests"
+    },
+    {
+      "name": "Debug Web Service",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/target/debug/web-service",
+      "args": [],
+      "cwd": "${workspaceFolder}/examples/web-service",
+      "stopOnEntry": false,
+      "environment": [
+        {
+          "name": "RUST_LOG",
+          "value": "debug"
+        },
+        {
+          "name": "PORT",
+          "value": "8080"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "Buck2: Build Web Service"
+    },
+    {
+      "name": "Debug TypeScript/Node.js",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/examples/frontend-app/dist/index.js",
+      "outFiles": [
+        "${workspaceFolder}/examples/frontend-app/dist/**/*.js"
+      ],
+      "cwd": "${workspaceFolder}/examples/frontend-app",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "preLaunchTask": "TypeScript: Build"
+    },
+    {
+      "name": "Debug Python Application",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/tools/codegen/main.py",
+      "args": [],
+      "cwd": "${workspaceFolder}/tools/codegen",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Debug Python Tests",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "${workspaceFolder}/tools/codegen/tests",
+        "-v"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Debug Go Application",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/tools/deployment",
+      "args": [],
+      "cwd": "${workspaceFolder}/tools/deployment",
+      "env": {},
+      "showLog": true,
+      "preLaunchTask": "Go: Build"
+    },
+    {
+      "name": "Debug Go Tests",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${workspaceFolder}/tools/deployment",
+      "args": [
+        "-test.v"
+      ],
+      "cwd": "${workspaceFolder}/tools/deployment",
+      "env": {},
+      "showLog": true
+    },
+    {
+      "name": "Attach to Running Process",
+      "type": "lldb",
+      "request": "attach",
+      "pid": "${command:pickProcess}",
+      "stopOnEntry": false
+    },
+    {
+      "name": "Debug Docker Container",
+      "type": "lldb",
+      "request": "launch",
+      "program": "/usr/local/bin/app",
+      "args": [],
+      "cwd": "/app",
+      "stopOnEntry": false,
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "targetArchitecture": "x86_64",
+      "sourceMap": {
+        "/app": "${workspaceFolder}"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "rustBinaryName",
+      "description": "Enter the name of the Rust binary to debug",
+      "default": "web-service",
+      "type": "promptString"
+    },
+    {
+      "id": "rustTestName",
+      "description": "Enter the name of the Rust test binary to debug",
+      "default": "integration_tests",
+      "type": "promptString"
+    }
+  ]
+}

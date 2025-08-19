@@ -1,0 +1,135 @@
+{
+  "Rust Test Function": {
+    "prefix": "test",
+    "body": [
+      "#[cfg(test)]",
+      "mod tests {",
+      "    use super::*;",
+      "",
+      "    #[test]",
+      "    fn ${1:test_name}() {",
+      "        ${2:// Test implementation}",
+      "        assert_eq!(${3:actual}, ${4:expected});",
+      "    }",
+      "}"
+    ],
+    "description": "Create a Rust test module with a test function"
+  },
+  "Rust Async Test": {
+    "prefix": "atest",
+    "body": [
+      "#[cfg(test)]",
+      "mod tests {",
+      "    use super::*;",
+      "",
+      "    #[tokio::test]",
+      "    async fn ${1:test_name}() {",
+      "        ${2:// Async test implementation}",
+      "        assert_eq!(${3:actual}, ${4:expected});",
+      "    }",
+      "}"
+    ],
+    "description": "Create an async Rust test function"
+  },
+  "Rust Error Type": {
+    "prefix": "error",
+    "body": [
+      "#[derive(Debug, thiserror::Error)]",
+      "pub enum ${1:ErrorName} {",
+      "    #[error(\"${2:Error message}: {0}\")]",
+      "    ${3:VariantName}(String),",
+      "    ",
+      "    #[error(\"IO error: {0}\")]",
+      "    Io(#[from] std::io::Error),",
+      "}"
+    ],
+    "description": "Create a Rust error enum with thiserror"
+  },
+  "Rust Struct with Builder": {
+    "prefix": "builder",
+    "body": [
+      "#[derive(Debug, Clone)]",
+      "pub struct ${1:StructName} {",
+      "    ${2:field}: ${3:Type},",
+      "}",
+      "",
+      "impl ${1:StructName} {",
+      "    pub fn builder() -> ${1:StructName}Builder {",
+      "        ${1:StructName}Builder::default()",
+      "    }",
+      "}",
+      "",
+      "#[derive(Default)]",
+      "pub struct ${1:StructName}Builder {",
+      "    ${2:field}: Option<${3:Type}>,",
+      "}",
+      "",
+      "impl ${1:StructName}Builder {",
+      "    pub fn ${2:field}(mut self, ${2:field}: ${3:Type}) -> Self {",
+      "        self.${2:field} = Some(${2:field});",
+      "        self",
+      "    }",
+      "    ",
+      "    pub fn build(self) -> Result<${1:StructName}, String> {",
+      "        Ok(${1:StructName} {",
+      "            ${2:field}: self.${2:field}.ok_or(\"${2:field} is required\")?,",
+      "        })",
+      "    }",
+      "}"
+    ],
+    "description": "Create a Rust struct with builder pattern"
+  },
+  "Rust Web Handler": {
+    "prefix": "handler",
+    "body": [
+      "pub async fn ${1:handler_name}(",
+      "    ${2:// Add parameters here}",
+      ") -> Result<impl warp::Reply, warp::Rejection> {",
+      "    ${3:// Handler implementation}",
+      "    Ok(warp::reply::json(&${4:response}))",
+      "}"
+    ],
+    "description": "Create a Rust web handler function"
+  },
+  "Rust Tracing Instrument": {
+    "prefix": "instrument",
+    "body": [
+      "#[tracing::instrument(skip(${1:skip_params}))]",
+      "pub async fn ${2:function_name}(${3:params}) -> Result<${4:ReturnType}, ${5:ErrorType}> {",
+      "    tracing::info!(\"${6:Starting function}\");",
+      "    ${7:// Function implementation}",
+      "    Ok(${8:result})",
+      "}"
+    ],
+    "description": "Create an instrumented Rust function with tracing"
+  },
+  "Buck2 Rust Binary Rule": {
+    "prefix": "buck_rust_binary",
+    "body": [
+      "rust_binary(",
+      "    name = \"${1:binary_name}\",",
+      "    srcs = [\"${2:src/main.rs}\"],",
+      "    deps = [",
+      "        ${3:// Add dependencies here}",
+      "    ],",
+      "    edition = \"2021\",",
+      ")"
+    ],
+    "description": "Create a Buck2 Rust binary rule"
+  },
+  "Buck2 Rust Library Rule": {
+    "prefix": "buck_rust_library",
+    "body": [
+      "rust_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"src/**/*.rs\"]),",
+      "    deps = [",
+      "        ${2:// Add dependencies here}",
+      "    ],",
+      "    edition = \"2021\",",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Rust library rule"
+  }
+}

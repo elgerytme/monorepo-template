@@ -1,0 +1,284 @@
+{
+  // Rust-specific settings
+  "rust-analyzer.server.path": "rust-analyzer",
+  "rust-analyzer.cargo.target": null,
+  "rust-analyzer.cargo.allFeatures": true,
+  "rust-analyzer.cargo.loadOutDirsFromCheck": true,
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.diagnostics.enable": true,
+  "rust-analyzer.diagnostics.enableExperimental": true,
+  "rust-analyzer.completion.addCallArgumentSnippets": true,
+  "rust-analyzer.completion.addCallParenthesis": true,
+  "rust-analyzer.completion.postfix.enable": true,
+  "rust-analyzer.imports.granularity.group": "module",
+  "rust-analyzer.imports.prefix": "by_crate",
+  "rust-analyzer.lens.enable": true,
+  "rust-analyzer.lens.methodReferences": true,
+  "rust-analyzer.lens.references": true,
+  "rust-analyzer.lens.implementations": true,
+  "rust-analyzer.inlayHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints": true,
+  "rust-analyzer.inlayHints.typeHints": true,
+  "rust-analyzer.inlayHints.chainingHints": true,
+  
+  // Buck2 integration
+  "files.associations": {
+    "BUCK": "python",
+    "*.bzl": "python",
+    ".buckconfig": "ini",
+    ".buckroot": "text",
+    "*.buckconfig": "ini"
+  },
+  
+  // Code formatting and linting
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+    "source.organizeImports": true,
+    "source.sortImports": true
+  },
+  
+  // Language-specific formatters
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true,
+    "editor.semanticHighlighting.enabled": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "dprint.dprint",
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "dprint.dprint"
+  },
+  
+  // File exclusions for performance
+  "files.exclude": {
+    "**/target": true,
+    "**/node_modules": true,
+    "**/buck-out": true,
+    "**/.buckd": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  
+  // Search exclusions and optimization
+  "search.exclude": {
+    "**/target": true,
+    "**/node_modules": true,
+    "**/buck-out": true,
+    "**/.buckd": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.git/objects": true,
+    "**/.git/subtree-cache": true,
+    "**/bower_components": true
+  },
+  
+  // Advanced search settings
+  "search.smartCase": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useParentIgnoreFiles": true,
+  "search.followSymlinks": false,
+  "search.maintainFileSearchCache": true,
+  "search.maxResults": 20000,
+  "search.quickOpen.includeSymbols": true,
+  "search.quickOpen.includeHistory": true,
+  
+  // Watcher exclusions for performance
+  "files.watcherExclude": {
+    "**/target/**": true,
+    "**/node_modules/**": true,
+    "**/buck-out/**": true,
+    "**/.buckd/**": true,
+    "**/__pycache__/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/bower_components/**": true
+  },
+  
+  // Terminal configuration
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": "cmd.exe",
+      "icon": "terminal-cmd"
+    }
+  },
+  
+  // Git configuration
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.defaultCloneDirectory": "../",
+  
+  // Testing configuration
+  "rust-analyzer.runnables.command": "nextest",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "."
+  ],
+  "go.testFlags": ["-v", "-race"],
+  "go.testTimeout": "30s",
+  
+  // Security and privacy
+  "telemetry.telemetryLevel": "error",
+  "security.workspace.trust.untrustedFiles": "prompt",
+  "security.workspace.trust.banner": "always",
+  "security.workspace.trust.startupPrompt": "always",
+  
+  // Performance settings
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.suggest.autoImports": false,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  
+  // Code navigation optimization
+  "breadcrumbs.enabled": true,
+  "breadcrumbs.filePath": "on",
+  "breadcrumbs.symbolPath": "on",
+  "breadcrumbs.symbolSortOrder": "position",
+  "outline.showVariables": true,
+  "outline.showFunctions": true,
+  "outline.showModules": true,
+  "outline.showClasses": true,
+  "outline.showInterfaces": true,
+  "outline.showEnums": true,
+  "outline.showStructs": true,
+  
+  // Symbol navigation
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.enablePreviewFromQuickOpen": false,
+  "workbench.quickOpen.closeOnFocusLost": false,
+  "workbench.quickOpen.preserveInput": true,
+  
+  // Editor appearance and navigation
+  "editor.minimap.enabled": true,
+  "editor.minimap.maxColumn": 100,
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.renderCharacters": false,
+  "editor.rulers": [80, 100],
+  "editor.renderWhitespace": "boundary",
+  "editor.guides.bracketPairs": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.stickyScroll.maxLineCount": 5,
+  
+  // IntelliSense and suggestions optimization
+  "editor.suggestSelection": "first",
+  "editor.acceptSuggestionOnCommitCharacter": false,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": false
+  },
+  "editor.quickSuggestionsDelay": 10,
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.suggest.localityBonus": true,
+  "editor.suggest.shareSuggestSelections": true,
+  "editor.suggest.showWords": false,
+  
+  // Problem matcher configuration
+  "problems.decorations.enabled": true,
+  "problems.showCurrentInStatus": true,
+  "problems.sortOrder": "severity",
+  
+  // Language server performance
+  "rust-analyzer.server.extraEnv": {
+    "RUST_LOG": "error"
+  },
+  "rust-analyzer.checkOnSave.enable": true,
+  "rust-analyzer.checkOnSave.command": "clippy",
+  "rust-analyzer.checkOnSave.extraArgs": ["--all-targets", "--all-features"],
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.cargo.buildScripts.overrideCommand": null,
+  "rust-analyzer.cargo.buildScripts.useRustcWrapper": true,
+  
+  // Go language server optimization
+  "go.useLanguageServer": true,
+  "go.languageServerFlags": [
+    "-rpc.trace",
+    "serve",
+    "--debug=localhost:6060"
+  ],
+  "go.languageServerExperimentalFeatures": {
+    "diagnostics": true,
+    "documentLink": true
+  },
+  
+  // Python language server optimization
+  "python.languageServer": "Pylsp",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.typeCheckingMode": "basic",
+  
+  // TypeScript language server optimization
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.includeAutomaticOptionalChainCompletions": true,
+  "typescript.suggest.includeCompletionsForImportStatements": true,
+  "typescript.workspaceSymbols.scope": "allOpenProjects",
+  
+  // File indexing optimization
+  "files.hotExit": "onExitAndWindowClose",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  
+  // Workspace optimization
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": false,
+  "update.mode": "manual",
+  
+  // Buck2 build integration
+  "task.allowAutomaticTasks": "on",
+  "task.problemMatchers.neverPrompt": true
+}

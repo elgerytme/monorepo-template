@@ -1,0 +1,234 @@
+{
+    "name": "Monorepo Development Environment",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "installOhMyZsh": true,
+            "upgradePackages": true,
+            "username": "vscode",
+            "userUid": "automatic",
+            "userGid": "automatic"
+        },
+        "ghcr.io/devcontainers/features/git:1": {
+            "ppa": true,
+            "version": "latest"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "enableNonRootDocker": "true",
+            "moby": "true"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "serayuzgur.crates",
+                "vadimcn.vscode-lldb",
+                "ms-vscode.vscode-typescript-next",
+                "bradlc.vscode-tailwindcss",
+                "ms-python.python",
+                "ms-python.black-formatter",
+                "ms-python.flake8",
+                "ms-python.mypy-type-checker",
+                "golang.go",
+                "ms-vscode.vscode-json",
+                "redhat.vscode-yaml",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode-remote.remote-containers",
+                "github.vscode-github-actions",
+                "github.vscode-pull-request-github",
+                "github.copilot",
+                "github.copilot-chat",
+                "dprint.dprint",
+                "tyriar.sort-lines",
+                "streetsidesoftware.code-spell-checker",
+                "eamodio.gitlens",
+                "yzhang.markdown-all-in-one",
+                "davidanson.vscode-markdownlint",
+                "bierner.markdown-mermaid",
+                "ms-vscode.vscode-todo-highlight",
+                "gruntfuggly.todo-tree",
+                "alefragnani.bookmarks",
+                "hbenl.vscode-test-explorer",
+                "ms-vscode.test-adapter-converter",
+                "ryanluker.vscode-coverage-gutters",
+                "ms-vscode.makefile-tools"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                
+                // Enhanced Rust analyzer settings
+                "rust-analyzer.server.path": "rust-analyzer",
+                "rust-analyzer.checkOnSave.command": "clippy",
+                "rust-analyzer.checkOnSave.extraArgs": ["--all-targets", "--all-features"],
+                "rust-analyzer.cargo.features": "all",
+                "rust-analyzer.cargo.buildScripts.enable": true,
+                "rust-analyzer.procMacro.enable": true,
+                "rust-analyzer.diagnostics.enable": true,
+                "rust-analyzer.diagnostics.enableExperimental": true,
+                "rust-analyzer.completion.addCallArgumentSnippets": true,
+                "rust-analyzer.completion.addCallParenthesis": true,
+                "rust-analyzer.completion.postfix.enable": true,
+                "rust-analyzer.completion.autoimport.enable": true,
+                "rust-analyzer.imports.granularity.group": "module",
+                "rust-analyzer.imports.prefix": "by_crate",
+                "rust-analyzer.inlayHints.enable": true,
+                "rust-analyzer.inlayHints.parameterHints": true,
+                "rust-analyzer.inlayHints.typeHints": true,
+                "rust-analyzer.inlayHints.chainingHints": true,
+                "rust-analyzer.lens.enable": true,
+                "rust-analyzer.lens.methodReferences": true,
+                "rust-analyzer.lens.references": true,
+                "rust-analyzer.lens.implementations": true,
+                "rust-analyzer.runnables.command": "nextest",
+                
+                // Buck2 integration
+                "files.associations": {
+                    "BUCK": "python",
+                    "*.bzl": "python",
+                    ".buckconfig": "ini",
+                    ".buckroot": "text",
+                    "*.buckconfig": "ini"
+                },
+                
+                // Enhanced editor settings
+                "editor.formatOnSave": true,
+                "editor.formatOnPaste": true,
+                "editor.codeActionsOnSave": {
+                    "source.fixAll": true,
+                    "source.organizeImports": true,
+                    "source.sortImports": true
+                },
+                "editor.rulers": [80, 100],
+                "editor.renderWhitespace": "boundary",
+                "editor.guides.bracketPairs": true,
+                "editor.bracketPairColorization.enabled": true,
+                "editor.stickyScroll.enabled": true,
+                "editor.stickyScroll.maxLineCount": 5,
+                "editor.minimap.enabled": true,
+                "editor.minimap.maxColumn": 100,
+                "editor.minimap.showSlider": "always",
+                
+                // Language-specific formatters
+                "[rust]": {
+                    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+                    "editor.semanticHighlighting.enabled": true
+                },
+                "[typescript]": {
+                    "editor.defaultFormatter": "dprint.dprint"
+                },
+                "[javascript]": {
+                    "editor.defaultFormatter": "dprint.dprint"
+                },
+                "[json]": {
+                    "editor.defaultFormatter": "dprint.dprint"
+                },
+                "[jsonc]": {
+                    "editor.defaultFormatter": "dprint.dprint"
+                },
+                "[markdown]": {
+                    "editor.defaultFormatter": "dprint.dprint",
+                    "editor.wordWrap": "on"
+                },
+                "[python]": {
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": true
+                    }
+                },
+                "[go]": {
+                    "editor.defaultFormatter": "golang.go",
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": true
+                    }
+                },
+                "[yaml]": {
+                    "editor.defaultFormatter": "redhat.vscode-yaml"
+                },
+                "[toml]": {
+                    "editor.defaultFormatter": "dprint.dprint"
+                },
+                
+                // Enhanced file watching and search
+                "files.watcherExclude": {
+                    "**/target/**": true,
+                    "**/node_modules/**": true,
+                    "**/.git/**": true,
+                    "**/buck-out/**": true,
+                    "**/.buckd/**": true,
+                    "**/__pycache__/**": true,
+                    "**/.pytest_cache/**": true,
+                    "**/.mypy_cache/**": true
+                },
+                "search.exclude": {
+                    "**/target": true,
+                    "**/node_modules": true,
+                    "**/buck-out": true,
+                    "**/.buckd": true,
+                    "**/__pycache__": true,
+                    "**/.pytest_cache": true,
+                    "**/.mypy_cache": true
+                },
+                "search.smartCase": true,
+                "search.useGlobalIgnoreFiles": true,
+                "search.useParentIgnoreFiles": true,
+                "search.followSymlinks": false,
+                
+                // Code navigation
+                "breadcrumbs.enabled": true,
+                "breadcrumbs.filePath": "on",
+                "breadcrumbs.symbolPath": "on",
+                "outline.showVariables": true,
+                "outline.showFunctions": true,
+                "outline.showModules": true,
+                "outline.showClasses": true,
+                
+                // Testing configuration
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "python.testing.pytestArgs": ["."],
+                "go.testFlags": ["-v", "-race"],
+                "go.testTimeout": "30s",
+                
+                // Git configuration
+                "git.autofetch": true,
+                "git.enableSmartCommit": true,
+                "git.confirmSync": false,
+                
+                // Performance and security
+                "telemetry.telemetryLevel": "error",
+                "security.workspace.trust.untrustedFiles": "prompt",
+                "typescript.preferences.includePackageJsonAutoImports": "off",
+                "typescript.suggest.autoImports": false,
+                
+                // Problem matcher
+                "problems.decorations.enabled": true,
+                "problems.showCurrentInStatus": true,
+                "problems.sortOrder": "severity",
+                
+                // Tool paths
+                "dprint.path": "/usr/local/bin/dprint"
+            }
+        }
+    },
+    "forwardPorts": [3000, 8000, 8080, 9000],
+    "postCreateCommand": "bash scripts/setup/bootstrap.sh",
+    "postStartCommand": "bash scripts/setup/health-check.sh",
+    "remoteUser": "vscode",
+    "mounts": [
+        "source=${localWorkspaceFolder}/.devcontainer/cache,target=/home/vscode/.cache,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder}/.devcontainer/cargo,target=/home/vscode/.cargo,type=bind,consistency=cached"
+    ],
+    "containerEnv": {
+        "RUST_BACKTRACE": "1",
+        "CARGO_INCREMENTAL": "1",
+        "CARGO_NET_GIT_FETCH_WITH_CLI": "true"
+    }
+}

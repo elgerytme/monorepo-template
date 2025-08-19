@@ -1,0 +1,46 @@
+{
+  "Buck2 Python Binary": {
+    "prefix": "buck_python_binary",
+    "body": [
+      "python_binary(",
+      "    name = \"${1:binary_name}\",",
+      "    main = \"${2:main.py}\",",
+      "    deps = [",
+      "        ${3:// Add dependencies here}",
+      "    ],",
+      ")"
+    ],
+    "description": "Create a Buck2 Python binary rule"
+  },
+  "Buck2 Python Library": {
+    "prefix": "buck_python_library",
+    "body": [
+      "python_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"**/*.py\"]),",
+      "    deps = [",
+      "        ${2:// Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Python library rule"
+  },
+  "Python Test Class": {
+    "prefix": "testclass",
+    "body": [
+      "import pytest",
+      "",
+      "",
+      "class Test${1:ClassName}:",
+      "    def test_${2:test_name}(self):",
+      "        ${3:# Test implementation}",
+      "        assert ${4:condition}",
+      "",
+      "    def test_${5:another_test}(self):",
+      "        ${6:# Another test implementation}",
+      "        assert ${7:condition}"
+    ],
+    "description": "Create a Python test class with pytest"
+  }
+}

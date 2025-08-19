@@ -1,0 +1,52 @@
+{
+  "Go Test Function": {
+    "prefix": "test",
+    "body": [
+      "func Test${1:FunctionName}(t *testing.T) {",
+      "    ${2:// Test implementation}",
+      "    if ${3:actual} != ${4:expected} {",
+      "        t.Errorf(\"Expected %v, got %v\", ${4:expected}, ${3:actual})",
+      "    }",
+      "}"
+    ],
+    "description": "Create a Go test function"
+  },
+  "Go Benchmark": {
+    "prefix": "bench",
+    "body": [
+      "func Benchmark${1:FunctionName}(b *testing.B) {",
+      "    for i := 0; i < b.N; i++ {",
+      "        ${2:// Benchmark code}",
+      "    }",
+      "}"
+    ],
+    "description": "Create a Go benchmark function"
+  },
+  "Buck2 Go Binary": {
+    "prefix": "buck_go_binary",
+    "body": [
+      "go_binary(",
+      "    name = \"${1:binary_name}\",",
+      "    srcs = [\"${2:main.go}\"],",
+      "    deps = [",
+      "        ${3:// Add dependencies here}",
+      "    ],",
+      ")"
+    ],
+    "description": "Create a Buck2 Go binary rule"
+  },
+  "Buck2 Go Library": {
+    "prefix": "buck_go_library",
+    "body": [
+      "go_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"*.go\"]),",
+      "    deps = [",
+      "        ${2:// Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Go library rule"
+  }
+}

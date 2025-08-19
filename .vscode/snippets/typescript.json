@@ -1,0 +1,49 @@
+{
+  "React Component": {
+    "prefix": "rfc",
+    "body": [
+      "import React from 'react';",
+      "",
+      "interface ${1:ComponentName}Props {",
+      "  ${2:prop}: ${3:string};",
+      "}",
+      "",
+      "export const ${1:ComponentName}: React.FC<${1:ComponentName}Props> = ({ ${2:prop} }) => {",
+      "  return (",
+      "    <div>",
+      "      ${4:// Component content}",
+      "    </div>",
+      "  );",
+      "};",
+      "",
+      "export default ${1:ComponentName};"
+    ],
+    "description": "Create a React functional component with TypeScript"
+  },
+  "Jest Test": {
+    "prefix": "test",
+    "body": [
+      "describe('${1:TestSuite}', () => {",
+      "  test('${2:test description}', () => {",
+      "    ${3:// Test implementation}",
+      "    expect(${4:actual}).toBe(${5:expected});",
+      "  });",
+      "});"
+    ],
+    "description": "Create a Jest test suite"
+  },
+  "Buck2 TypeScript Library": {
+    "prefix": "buck_ts_library",
+    "body": [
+      "typescript_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"src/**/*.ts\", \"src/**/*.tsx\"]),",
+      "    deps = [",
+      "        ${2:// Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 TypeScript library rule"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "recommendations": [
+    // Core Rust development
+    "rust-lang.rust-analyzer",
+    "vadimcn.vscode-lldb",
+    "serayuzgur.crates",
+    
+    // Build system and tools
+    "ms-vscode.makefile-tools",
+    
+    // Multi-language formatting with dprint (Rust-based)
+    "dprint.dprint",
+    
+    // TypeScript/JavaScript development
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-eslint",
+    
+    // Python development
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "ms-python.flake8",
+    "ms-python.mypy-type-checker",
+    "ms-python.pylint",
+    
+    // Go development
+    "golang.go",
+    
+    // Docker and containers
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode-remote.remote-ssh",
+    "ms-azuretools.vscode-docker",
+    
+    // Git and version control
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+    "github.vscode-github-actions",
+    
+    // Documentation and markdown
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+    "bierner.markdown-mermaid",
+    
+    // Configuration files
+    "redhat.vscode-yaml",
+    "ms-vscode.vscode-json",
+    "tamasfe.even-better-toml",
+    
+    // Security and code quality
+    "github.copilot",
+    "github.copilot-chat",
+    "ms-vscode.vscode-github-issue-notebooks",
+    
+    // Productivity and navigation
+    "ms-vscode.vscode-todo-highlight",
+    "gruntfuggly.todo-tree",
+    "streetsidesoftware.code-spell-checker",
+    "alefragnani.bookmarks",
+    "ms-vscode.vscode-json",
+    
+    // Testing
+    "hbenl.vscode-test-explorer",
+    "ms-vscode.test-adapter-converter",
+    "ryanluker.vscode-coverage-gutters",
+    
+    // Performance and monitoring
+    "ms-vscode.vscode-json",
+    "redhat.vscode-xml",
+    
+    // Theme and UI (optional but recommended)
+    "github.github-vscode-theme",
+    "pkief.material-icon-theme",
+    
+    // Additional utilities
+    "ms-vscode.hexeditor",
+    "ms-vscode.vscode-serial-monitor",
+    "ms-vscode.remote-explorer"
+  ],
+  "unwantedRecommendations": [
+    // Avoid conflicting formatters
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript",
+    
+    // Avoid conflicting Rust extensions
+    "kalitaalexey.vscode-rust",
+    "rust-lang.rust",
+    
+    // Avoid conflicting Python formatters
+    "ms-python.autopep8",
+    
+    // Avoid conflicting Go extensions
+    "golang.Go-nightly"
+  ]
+}

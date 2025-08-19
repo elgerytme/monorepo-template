@@ -1,0 +1,167 @@
+{
+  "Buck2 Rust Binary": {
+    "prefix": "rust_binary",
+    "body": [
+      "rust_binary(",
+      "    name = \"${1:binary_name}\",",
+      "    srcs = [\"${2:src/main.rs}\"],",
+      "    deps = [",
+      "        ${3:# Add dependencies here}",
+      "    ],",
+      "    edition = \"2021\",",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Rust binary rule"
+  },
+  "Buck2 Rust Library": {
+    "prefix": "rust_library",
+    "body": [
+      "rust_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"src/**/*.rs\"]),",
+      "    deps = [",
+      "        ${2:# Add dependencies here}",
+      "    ],",
+      "    edition = \"2021\",",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Rust library rule"
+  },
+  "Buck2 Rust Test": {
+    "prefix": "rust_test",
+    "body": [
+      "rust_test(",
+      "    name = \"${1:test_name}\",",
+      "    srcs = [\"${2:tests/test.rs}\"],",
+      "    deps = [",
+      "        \":${3:library_name}\",",
+      "        ${4:# Add test dependencies here}",
+      "    ],",
+      "    edition = \"2021\",",
+      ")"
+    ],
+    "description": "Create a Buck2 Rust test rule"
+  },
+  "Buck2 Python Binary": {
+    "prefix": "python_binary",
+    "body": [
+      "python_binary(",
+      "    name = \"${1:binary_name}\",",
+      "    main = \"${2:main.py}\",",
+      "    deps = [",
+      "        ${3:# Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Python binary rule"
+  },
+  "Buck2 Python Library": {
+    "prefix": "python_library",
+    "body": [
+      "python_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"**/*.py\"]),",
+      "    deps = [",
+      "        ${2:# Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Python library rule"
+  },
+  "Buck2 Go Binary": {
+    "prefix": "go_binary",
+    "body": [
+      "go_binary(",
+      "    name = \"${1:binary_name}\",",
+      "    srcs = [\"${2:main.go}\"],",
+      "    deps = [",
+      "        ${3:# Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Go binary rule"
+  },
+  "Buck2 Go Library": {
+    "prefix": "go_library",
+    "body": [
+      "go_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"*.go\"]),",
+      "    deps = [",
+      "        ${2:# Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 Go library rule"
+  },
+  "Buck2 TypeScript Library": {
+    "prefix": "typescript_library",
+    "body": [
+      "typescript_library(",
+      "    name = \"${1:library_name}\",",
+      "    srcs = glob([\"src/**/*.ts\", \"src/**/*.tsx\"]),",
+      "    deps = [",
+      "        ${2:# Add dependencies here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 TypeScript library rule"
+  },
+  "Buck2 Filegroup": {
+    "prefix": "filegroup",
+    "body": [
+      "filegroup(",
+      "    name = \"${1:filegroup_name}\",",
+      "    srcs = [",
+      "        ${2:# Add files here}",
+      "    ],",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 filegroup rule"
+  },
+  "Buck2 Genrule": {
+    "prefix": "genrule",
+    "body": [
+      "genrule(",
+      "    name = \"${1:rule_name}\",",
+      "    srcs = [",
+      "        ${2:# Add source files here}",
+      "    ],",
+      "    out = \"${3:output_file}\",",
+      "    cmd = \"${4:# Add command here}\",",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 genrule"
+  },
+  "Buck2 Export File": {
+    "prefix": "export_file",
+    "body": [
+      "export_file(",
+      "    name = \"${1:file_name}\",",
+      "    src = \"${2:source_file}\",",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 export_file rule"
+  },
+  "Buck2 Alias": {
+    "prefix": "alias",
+    "body": [
+      "alias(",
+      "    name = \"${1:alias_name}\",",
+      "    actual = \"${2:actual_target}\",",
+      "    visibility = [\"PUBLIC\"],",
+      ")"
+    ],
+    "description": "Create a Buck2 alias rule"
+  }
+}
