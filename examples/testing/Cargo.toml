@@ -1,0 +1,53 @@
+[package]
+name = "testing-examples"
+version = "0.1.0"
+edition = "2021"
+description = "Comprehensive testing examples for the monorepo"
+
+[dependencies]
+# Local testing framework
+testing-framework = { path = "../../libs/testing-framework" }
+
+# Core dependencies
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Web framework for examples
+axum = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+
+# Database
+sqlx = { version = "0.7", features = [
+  "runtime-tokio-rustls",
+  "postgres",
+  "chrono",
+  "uuid",
+] }
+
+# Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json"] }
+
+[dev-dependencies]
+# Additional test dependencies
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.0"
+fake = { version = "2.5", features = ["derive", "chrono", "uuid"] }
+wiremock = "0.5"
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3", features = ["postgres"] }
+
+[[bin]]
+name = "web-service"
+path = "src/bin/web_service.rs"
+
+[[bench]]
+name = "api_benchmarks"
+harness = false

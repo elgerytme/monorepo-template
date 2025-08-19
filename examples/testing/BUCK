@@ -1,0 +1,88 @@
+load("@prelude//rust:defs.bzl", "rust_library", "rust_binary", "rust_test")
+
+rust_library(
+    name="testing-examples",
+    srcs=glob(["src/**/*.rs"], exclude=["src/bin/**/*.rs"]),
+    crate_root="src/lib.rs",
+    edition="2021",
+    deps=[
+        "//libs/testing-framework:testing-framework",
+        "//third-party:tokio",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:uuid",
+        "//third-party:chrono",
+        "//third-party:axum",
+        "//third-party:tower",
+        "//third-party:tower-http",
+        "//third-party:sqlx",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:reqwest",
+        "//third-party:thiserror",
+        "//third-party:async-trait",
+    ],
+    visibility=["PUBLIC"],
+)
+
+rust_binary(
+    name="web-service",
+    srcs=["src/bin/web_service.rs"],
+    crate_root="src/bin/web_service.rs",
+    edition="2021",
+    deps=[
+        ":testing-examples",
+        "//third-party:tokio",
+        "//third-party:axum",
+        "//third-party:tower-http",
+        "//third-party:tracing-subscriber",
+        "//third-party:sqlx",
+    ],
+)
+
+rust_test(
+    name="unit-tests",
+    crate=":testing-examples",
+    use_crate_root=True,
+    env={
+        "RUST_LOG": "debug",
+    },
+)
+
+rust_test(
+    name="integration-tests",
+    srcs=glob(["tests/**/*.rs"]),
+    crate_root="tests/integration_tests.rs",
+    edition="2021",
+    deps=[
+        ":testing-examples",
+        "//libs/testing-framework:testing-framework",
+        "//third-party:tokio",
+        "//third-party:uuid",
+        "//third-party:sqlx",
+    ],
+    env={
+        "RUST_LOG": "info",
+        "DATABASE_URL": "postgres://postgres:postgres@localhost:5432/test_db",
+    },
+    features=["integration"],
+)
+
+# Benchmark target
+rust_test(
+    name="benchmarks",
+    srcs=glob(["benches/**/*.rs"]),
+    crate_root="benches/api_benchmarks.rs",
+    edition="2021",
+    deps=[
+        ":testing-examples",
+        "//libs/testing-framework:testing-framework",
+        "//third-party:criterion",
+        "//third-party:tokio",
+        "//third-party:axum",
+    ],
+    env={
+        "RUST_LOG": "warn",
+    },
+    features=["performance"],
+)

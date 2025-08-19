@@ -1,0 +1,43 @@
+[package]
+name = "observability"
+version = "0.1.0"
+edition = "2021"
+description = "Standardized observability library for the monorepo"
+
+[dependencies]
+# Metrics collection
+prometheus = "0.13"
+metrics = "0.21"
+metrics-exporter-prometheus = "0.12"
+
+# Structured logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tracing-opentelemetry = "0.21"
+tracing-appender = "0.2"
+
+# OpenTelemetry
+opentelemetry = { version = "0.20", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.13", features = ["grpc-tonic"] }
+opentelemetry-prometheus = "0.13"
+opentelemetry-jaeger = "0.19"
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Configuration
+config = "0.13"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# HTTP client for alerting
+reqwest = { version = "0.11", features = ["json"] }
+
+[dev-dependencies]
+tokio-test = "0.4"

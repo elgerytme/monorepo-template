@@ -1,0 +1,98 @@
+load("@prelude//rust:defs.bzl", "rust_library", "rust_test")
+
+rust_library(
+    name="testing-framework",
+    srcs=glob(["src/**/*.rs"]),
+    crate_root="src/lib.rs",
+    edition="2021",
+    deps=[
+        "//third-party:tokio",
+        "//third-party:tokio-test",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:uuid",
+        "//third-party:chrono",
+        "//third-party:proptest",
+        "//third-party:quickcheck",
+        "//third-party:fake",
+        "//third-party:wiremock",
+        "//third-party:futures",
+        "//third-party:futures-util",
+        "//third-party:reqwest",
+        "//third-party:hyper",
+        "//third-party:sqlx",
+        "//third-party:criterion",
+        "//third-party:pprof",
+        "//third-party:regex",
+        "//third-party:walkdir",
+        "//third-party:base64",
+        "//third-party:tempfile",
+    ]
+    + select(
+        {
+            "//config:integration_tests": [
+                "//third-party:testcontainers",
+                "//third-party:testcontainers-modules",
+            ],
+            "DEFAULT": [],
+        }
+    ),
+    features=[
+        "default",
+    ]
+    + select(
+        {
+            "//config:integration_tests": ["integration"],
+            "DEFAULT": [],
+        }
+    )
+    + select(
+        {
+            "//config:performance_tests": ["performance"],
+            "DEFAULT": [],
+        }
+    )
+    + select(
+        {
+            "//config:security_tests": ["security"],
+            "DEFAULT": [],
+        }
+    ),
+    visibility=["PUBLIC"],
+)
+
+rust_test(
+    name="unit-tests",
+    crate=":testing-framework",
+    use_crate_root=True,
+)
+
+rust_test(
+    name="integration-tests",
+    crate=":testing-framework",
+    use_crate_root=True,
+    features=["integration"],
+    env={
+        "RUST_LOG": "debug",
+    },
+)
+
+rust_test(
+    name="performance-tests",
+    crate=":testing-framework",
+    use_crate_root=True,
+    features=["performance"],
+    env={
+        "RUST_LOG": "info",
+    },
+)
+
+rust_test(
+    name="security-tests",
+    crate=":testing-framework",
+    use_crate_root=True,
+    features=["security"],
+    env={
+        "RUST_LOG": "warn",
+    },
+)

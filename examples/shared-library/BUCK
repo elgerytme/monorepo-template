@@ -1,0 +1,17 @@
+load("//config/build_rules:rust.bzl", "rust_library", "rust_test")
+
+rust_library(
+    name = "shared-library",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    crate_types = ["cdylib", "rlib"],
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "shared-library-test",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2021",
+)

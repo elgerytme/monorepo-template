@@ -1,0 +1,40 @@
+load("//config/build_rules:rust.bzl", "rust_library", "rust_test")
+
+rust_library(
+    name = "observability",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    deps = [
+        "//third-party:prometheus",
+        "//third-party:metrics",
+        "//third-party:metrics-exporter-prometheus",
+        "//third-party:tracing",
+        "//third-party:tracing-subscriber",
+        "//third-party:tracing-opentelemetry",
+        "//third-party:tracing-appender",
+        "//third-party:opentelemetry",
+        "//third-party:opentelemetry-otlp",
+        "//third-party:opentelemetry-prometheus",
+        "//third-party:opentelemetry-jaeger",
+        "//third-party:tokio",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:config",
+        "//third-party:anyhow",
+        "//third-party:thiserror",
+        "//third-party:reqwest",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "observability_test",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs"]),
+    crate_root = "src/lib.rs",
+    edition = "2021",
+    deps = [
+        ":observability",
+        "//third-party:tokio-test",
+    ],
+)

@@ -1,0 +1,58 @@
+# Example applications using the monorepo build rules
+
+load("//config/build_rules:defs.bzl", 
+     "rust_binary", "node_service", "fastapi_service", "go_http_service",
+     "monorepo_service")
+
+# Example Rust web service
+rust_binary(
+    name = "user-service",
+    srcs = ["user-service/src/main.rs"],
+    deps = [
+        "//libs/rust:auth",
+        "//libs/rust:database", 
+        "//libs/rust:http_server",
+    ],
+    features = ["tokio-runtime"],
+)
+
+# Example TypeScript/Node.js API service
+node_service(
+    name = "api-gateway",
+    entry_point = "api-gateway/src/main.ts",
+    deps = [
+        "//libs/typescript:express_common",
+        "//libs/typescript:auth_middleware",
+    ],
+)
+
+# Example Python FastAPI service
+fastapi_service(
+    name = "notification-service",
+    main = "notification-service/main.py",
+    deps = [
+        "//libs/python:fastapi_common",
+        "//libs/python:message_queue",
+    ],
+)
+
+# Example Go HTTP service
+go_http_service(
+    name = "metrics-collector",
+    srcs = ["metrics-collector/main.go"],
+    deps = [
+        "//libs/go:http_server",
+        "//libs/go:prometheus",
+    ],
+)
+
+# Example using the universal service builder
+monorepo_service(
+    name = "analytics-service",
+    language = "rust",
+    srcs = ["analytics-service/src/main.rs"],
+    deps = [
+        "//libs/rust:analytics",
+        "//libs/rust:time_series",
+    ],
+)

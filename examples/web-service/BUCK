@@ -1,0 +1,22 @@
+load("//config/build_rules:rust.bzl", "rust_binary", "rust_test")
+
+rust_binary(
+    name = "web-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    edition = "2021",
+    deps = [
+        "//libs/observability:observability",
+    ],
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "web-service-test",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs"]),
+    crate_root = "src/main.rs",
+    edition = "2021",
+    deps = [
+        "//libs/observability:observability",
+    ],
+)

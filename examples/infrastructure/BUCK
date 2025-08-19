@@ -1,0 +1,52 @@
+load("//config/build_rules:terraform.bzl", "terraform_module", "terraform_validate")
+load("//config/build_rules:docker.bzl", "docker_image")
+load("//config/build_rules:kubernetes.bzl", "kubernetes_manifest")
+
+# Terraform infrastructure
+terraform_module(
+    name = "infrastructure",
+    srcs = glob([
+        "terraform/**/*.tf",
+        "terraform/**/*.tfvars",
+    ]),
+    visibility = ["PUBLIC"],
+)
+
+terraform_validate(
+    name = "terraform-validate",
+    srcs = [":infrastructure"],
+)
+
+# Docker image for web service
+docker_image(
+    name = "web-service-image",
+    dockerfile = "docker/Dockerfile",
+    context = "//examples/web-service",
+    tags = ["example-web-service:latest"],
+    visibility = ["PUBLIC"],
+)
+
+# Kubernetes manifests
+kubernetes_manifest(
+    name = "k8s-manifests",
+    srcs = glob(["kubernetes/**/*.yaml"]),
+    visibility = ["PUBLIC"],
+)
+
+# Security scanning
+genrule(
+    name = "security-scan",
+    srcs = glob([
+        "terraform/**/*.tf",
+        "docker/**/*",
+        "kubernetes/**/*.yaml",
+        "security-scanning/**/*",
+    ]),
+    outs = ["security-results.json"],
+    cmd = """
+        cd examples/infrastructure/security-scanning
+        ./scan.sh
+        cp results/security-summary.md $OUT
+    """,
+    visibility = ["PUBLIC"],
+)

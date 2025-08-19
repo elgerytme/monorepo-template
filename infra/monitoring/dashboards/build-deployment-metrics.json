@@ -1,0 +1,258 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Build & Deployment Metrics",
+    "tags": ["build", "deployment", "ci-cd"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Build Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(sum(rate(build_total{status=\"success\"}[1h])) / sum(rate(build_total[1h]))) * 100",
+            "legendFormat": "Success Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 80},
+                {"color": "green", "value": 95}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Average Build Duration",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(build_duration_seconds)",
+            "legendFormat": "Avg Duration"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 300},
+                {"color": "red", "value": 600}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Deployment Frequency",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(deployment_total[24h]))",
+            "legendFormat": "Deployments/Day"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 5}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Deployment Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(sum(rate(deployment_total{status=\"success\"}[1h])) / sum(rate(deployment_total[1h]))) * 100",
+            "legendFormat": "Success Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 90},
+                {"color": "green", "value": 98}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Build Duration Over Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "build_duration_seconds",
+            "legendFormat": "{{project}} - {{branch}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "s",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Build Queue Length",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "build_queue_length",
+            "legendFormat": "Queue Length"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "Test Coverage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "test_coverage_percentage",
+            "legendFormat": "{{project}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "percent",
+            "min": 0,
+            "max": 100
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Failed Tests",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (project) (test_failures_total)",
+            "legendFormat": "{{project}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 9,
+        "title": "Rollback Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(sum(rate(rollback_total[24h])) / sum(rate(deployment_total[24h]))) * 100",
+            "legendFormat": "Rollback Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24}
+      },
+      {
+        "id": 10,
+        "title": "Mean Time to Recovery",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(recovery_time_seconds)",
+            "legendFormat": "MTTR"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 3600},
+                {"color": "red", "value": 7200}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24}
+      },
+      {
+        "id": 11,
+        "title": "Lead Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(lead_time_seconds)",
+            "legendFormat": "Lead Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 86400},
+                {"color": "red", "value": 604800}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24}
+      }
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "refresh": "1m"
+  }
+}

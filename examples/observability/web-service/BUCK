@@ -1,0 +1,23 @@
+load("//config/build_rules:rust.bzl", "rust_binary")
+
+rust_binary(
+    name = "observability-web-service",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    edition = "2021",
+    deps = [
+        "//libs/observability:observability",
+        "//third-party:axum",
+        "//third-party:tower",
+        "//third-party:tower-http",
+        "//third-party:tokio",
+        "//third-party:serde",
+        "//third-party:serde_json",
+        "//third-party:tracing",
+        "//third-party:anyhow",
+        "//third-party:clap",
+        "//third-party:chrono",
+        "//third-party:rand",
+    ],
+    visibility = ["PUBLIC"],
+)

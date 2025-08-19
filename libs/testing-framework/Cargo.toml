@@ -1,0 +1,63 @@
+[package]
+name = "testing-framework"
+version = "0.1.0"
+edition = "2021"
+description = "Comprehensive testing framework for the monorepo"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# Core testing dependencies
+tokio = { version = "1.0", features = ["full"] }
+tokio-test = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Test utilities
+proptest = "1.0"
+quickcheck = "1.0"
+fake = { version = "2.5", features = ["derive", "chrono", "uuid"] }
+wiremock = "0.5"
+
+# Integration testing
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3", features = [
+  "postgres",
+  "redis",
+  "kafka",
+] }
+
+# Performance testing
+criterion = { version = "0.5", features = ["html_reports"] }
+pprof = { version = "0.12", features = ["criterion", "flamegraph"] }
+
+# Security testing
+cargo-audit = "0.18"
+
+# Async testing utilities
+futures = "0.3"
+futures-util = "0.3"
+
+# HTTP testing
+reqwest = { version = "0.11", features = ["json"] }
+hyper = { version = "0.14", features = ["full"] }
+
+# Database testing
+sqlx = { version = "0.7", features = [
+  "runtime-tokio-rustls",
+  "postgres",
+  "chrono",
+  "uuid",
+] }
+
+[dev-dependencies]
+# Additional dev dependencies for examples
+tracing-test = "0.2"
+temp-env = "0.3"
+
+[features]
+default = ["integration", "performance", "security"]
+integration = ["testcontainers", "testcontainers-modules"]
+performance = ["criterion", "pprof"]
+security = ["cargo-audit"]

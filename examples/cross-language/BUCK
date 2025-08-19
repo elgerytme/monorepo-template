@@ -1,0 +1,64 @@
+# Example demonstrating cross-language integration in the monorepo
+# Shows how Rust, Go, Python, and TypeScript can work together
+
+load("//config/build_rules:defs.bzl",
+     "rust_library", "go_library", "python_library", "typescript_library",
+     "go_rust_bridge", "cross_language_deps")
+
+# Core Rust library with FFI exports
+rust_library(
+    name = "core_engine",
+    srcs = ["rust/src/lib.rs"],
+    deps = [
+        "//libs/rust:common",
+    ],
+    # Enable C-compatible exports
+    rustc_flags = ["--crate-type=cdylib"],
+)
+
+# Go service that uses the Rust library via FFI
+go_rust_bridge(
+    name = "go_service_bridge",
+    go_srcs = ["go/service.go"],
+    rust_lib = ":core_engine",
+    bridge_header = "rust/bindings.h",
+)
+
+go_library(
+    name = "go_service",
+    srcs = ["go/main.go"],
+    deps = [
+        ":go_service_bridge",
+        "//libs/go:http_server",
+    ],
+    importpath = "github.com/company/monorepo/examples/cross-language/go",
+)
+
+# Python module that calls the Rust library
+python_library(
+    name = "python_wrapper",
+    srcs = ["python/wrapper.py"],
+    deps = [
+        ":core_engine",
+        "//third_party/python:cffi",
+    ],
+)
+
+# TypeScript frontend that communicates with all services
+typescript_library(
+    name = "frontend_client",
+    srcs = ["typescript/client.ts"],
+    deps = [
+        "//libs/typescript:http_client",
+        "//third_party/npm:axios",
+    ],
+)
+
+# Cross-language dependency management
+cross_language_deps(
+    name = "integration_deps",
+    rust_targets = [":core_engine"],
+    go_targets = [":go_service"],
+    python_targets = [":python_wrapper"],
+    typescript_targets = [":frontend_client"],
+)

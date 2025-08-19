@@ -1,0 +1,73 @@
+# Checkov configuration for infrastructure security scanning
+# https://www.checkov.io/
+
+# Framework to scan
+framework:
+  - terraform
+  - dockerfile
+  - kubernetes
+  - github_actions
+
+# Output format
+output:
+  - cli
+  - json
+  - sarif
+
+# Output file for JSON results
+output-file-path: checkov-results.json
+
+# Severity threshold
+check: 
+  - CKV_AWS_*  # All AWS checks
+  - CKV_DOCKER_*  # All Docker checks
+  - CKV_K8S_*  # All Kubernetes checks
+
+# Skip specific checks
+skip-check:
+  # Example skips - remove or modify as needed
+  - CKV_AWS_79  # Ensure Instance Metadata Service Version 1 is not enabled
+  - CKV_AWS_8   # Ensure all data stored in the Launch configuration EBS is securely encrypted at rest
+
+# Directories to scan
+directory:
+  - terraform/
+  - ../docker/
+  - ../kubernetes/
+
+# Files to exclude
+exclude-paths:
+  - .terraform/
+  - terraform.tfstate
+  - terraform.tfstate.backup
+  - .git/
+
+# Enable secret scanning
+enable-secret-scan-all-files: true
+
+# Compact output
+compact: false
+
+# Quiet mode
+quiet: false
+
+# Download external modules
+download-external-modules: true
+
+# External modules directory
+external-modules-download-path: .external_modules/
+
+# Baseline file for comparison
+baseline: security-baseline.json
+
+# Create baseline if it doesn't exist
+create-baseline: true
+
+# Soft fail mode
+soft-fail: false
+
+# Custom policies directory
+external-checks-dir: ./policies/
+
+# Enable plugin directory
+plugin-dir: ./plugins/

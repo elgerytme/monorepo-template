@@ -1,0 +1,343 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Developer Productivity Metrics",
+    "tags": ["developer", "productivity", "metrics"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Commits per Day",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(git_commits_total[24h]))",
+            "legendFormat": "Commits/Day"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "green", "value": 50}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Pull Request Cycle Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(pull_request_cycle_time_seconds)",
+            "legendFormat": "Avg Cycle Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 86400},
+                {"color": "red", "value": 259200}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Code Review Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(code_review_time_seconds)",
+            "legendFormat": "Avg Review Time"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 14400},
+                {"color": "red", "value": 86400}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Active Developers",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(count by (author) (increase(git_commits_total[24h])))",
+            "legendFormat": "Active Devs"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Lines of Code Changed",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(git_lines_added_total[1h]))",
+            "legendFormat": "Lines Added"
+          },
+          {
+            "expr": "sum(rate(git_lines_deleted_total[1h]))",
+            "legendFormat": "Lines Deleted"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Pull Request Throughput",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(pull_request_opened_total[1h]))",
+            "legendFormat": "Opened"
+          },
+          {
+            "expr": "sum(rate(pull_request_merged_total[1h]))",
+            "legendFormat": "Merged"
+          },
+          {
+            "expr": "sum(rate(pull_request_closed_total[1h]))",
+            "legendFormat": "Closed"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "Build Frequency by Developer",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (author) (rate(build_triggered_total[1h]))",
+            "legendFormat": "{{author}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "Test Execution Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "avg(test_execution_time_seconds)",
+            "legendFormat": "Avg Test Time"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "s",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 9,
+        "title": "Code Quality Metrics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "avg by (project) (code_complexity_score)",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true
+              },
+              "renameByName": {
+                "project": "Project",
+                "Value": "Complexity Score"
+              }
+            }
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 10,
+        "title": "Developer Velocity",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sum by (author) (rate(story_points_completed_total[7d]))",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "Time": true,
+                "__name__": true
+              },
+              "renameByName": {
+                "author": "Developer",
+                "Value": "Story Points/Week"
+              }
+            }
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+      },
+      {
+        "id": 11,
+        "title": "Rework Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(sum(rate(bug_fix_commits_total[7d])) / sum(rate(git_commits_total[7d]))) * 100",
+            "legendFormat": "Rework Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 15},
+                {"color": "red", "value": 25}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 32}
+      },
+      {
+        "id": 12,
+        "title": "Documentation Coverage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "documentation_coverage_percentage",
+            "legendFormat": "Doc Coverage"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 70},
+                {"color": "green", "value": 90}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 32}
+      },
+      {
+        "id": 13,
+        "title": "Knowledge Sharing Events",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(knowledge_sharing_events_total[7d]))",
+            "legendFormat": "Events/Week"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 32}
+      },
+      {
+        "id": 14,
+        "title": "Environment Setup Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "avg(environment_setup_time_seconds)",
+            "legendFormat": "Setup Time"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "s",
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 40}
+      },
+      {
+        "id": 15,
+        "title": "Tool Usage Statistics",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (tool) (rate(tool_usage_total[1h]))",
+            "legendFormat": "{{tool}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 40}
+      }
+    ],
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "refresh": "5m"
+  }
+}

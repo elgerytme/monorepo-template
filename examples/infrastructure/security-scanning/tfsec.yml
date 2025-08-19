@@ -1,0 +1,40 @@
+# tfsec configuration for Terraform security scanning
+# https://aquasecurity.github.io/tfsec/
+
+# Minimum severity level to report
+minimum_severity: MEDIUM
+
+# Exclude specific checks
+exclude:
+  # Example: Exclude specific checks if needed
+  # - aws-s3-enable-bucket-logging
+  # - aws-ec2-no-public-ingress-sgr
+
+# Include additional checks
+include:
+  - aws-*
+  - general-*
+
+# Custom check configuration
+severity_overrides:
+  # Override severity for specific checks
+  aws-s3-enable-versioning: HIGH
+  aws-rds-encrypt-instance-storage-data: HIGH
+  aws-ec2-no-public-ingress-sgr: CRITICAL
+
+# Output configuration
+format: json
+output: security-scan-results.json
+
+# Exclude directories
+exclude_paths:
+  - .terraform/
+  - terraform.tfstate*
+  - .git/
+
+# Include custom policies
+policy_dirs:
+  - ./policies/
+
+# Soft fail mode (don't exit with error code)
+soft_fail: false

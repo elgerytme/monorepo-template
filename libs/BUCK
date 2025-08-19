@@ -1,0 +1,102 @@
+# Example shared libraries using the monorepo build rules
+
+load("//config/build_rules:defs.bzl",
+     "rust_library", "typescript_library", "python_library", "go_library",
+     "cross_language_deps")
+
+# Rust common libraries
+rust_library(
+    name = "auth",
+    srcs = ["rust/auth/src/lib.rs"],
+    deps = [
+        ":common",
+        "//third_party/rust:jsonwebtoken",
+        "//third_party/rust:serde",
+    ],
+)
+
+rust_library(
+    name = "database",
+    srcs = ["rust/database/src/lib.rs"],
+    deps = [
+        ":common",
+        "//third_party/rust:sqlx",
+        "//third_party/rust:uuid",
+    ],
+)
+
+rust_library(
+    name = "common",
+    srcs = ["rust/common/src/lib.rs"],
+    deps = [
+        "//third_party/rust:tracing",
+        "//third_party/rust:serde",
+    ],
+)
+
+# TypeScript common libraries
+typescript_library(
+    name = "express_common",
+    srcs = ["typescript/express-common/src/index.ts"],
+    deps = [
+        "//third_party/npm:express",
+        "//third_party/npm:helmet",
+    ],
+)
+
+typescript_library(
+    name = "auth_middleware",
+    srcs = ["typescript/auth-middleware/src/index.ts"],
+    deps = [
+        ":express_common",
+        "//third_party/npm:jsonwebtoken",
+    ],
+)
+
+# Python common libraries
+python_library(
+    name = "fastapi_common",
+    srcs = ["python/fastapi_common/__init__.py"],
+    deps = [
+        "//third_party/python:fastapi",
+        "//third_party/python:pydantic",
+    ],
+)
+
+python_library(
+    name = "message_queue",
+    srcs = ["python/message_queue/__init__.py"],
+    deps = [
+        "//third_party/python:celery",
+        "//third_party/python:redis",
+    ],
+)
+
+# Go common libraries
+go_library(
+    name = "http_server",
+    srcs = ["go/http_server/server.go"],
+    importpath = "github.com/company/monorepo/libs/go/http_server",
+    deps = [
+        "//third_party/go:gin",
+        "//third_party/go:prometheus",
+    ],
+)
+
+go_library(
+    name = "prometheus",
+    srcs = ["go/prometheus/metrics.go"],
+    importpath = "github.com/company/monorepo/libs/go/prometheus",
+    deps = [
+        "//third_party/go:prometheus_client",
+    ],
+)
+
+# Cross-language integration example
+cross_language_deps(
+    name = "cross_lang_auth",
+    rust_targets = [":auth"],
+    go_targets = [":http_server"],
+    python_targets = [":fastapi_common"],
+    typescript_targets = [":auth_middleware"],
+)

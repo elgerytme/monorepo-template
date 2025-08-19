@@ -1,0 +1,28 @@
+load("//config/build_rules:typescript.bzl", "typescript_project", "typescript_test")
+
+typescript_project(
+    name = "frontend-app",
+    srcs = glob([
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.css",
+        "public/**/*",
+        "index.html",
+        "package.json",
+        "tsconfig.json",
+        "vite.config.ts",
+    ]),
+    deps = [],
+    visibility = ["PUBLIC"],
+)
+
+typescript_test(
+    name = "frontend-app-test",
+    srcs = glob([
+        "src/**/*.test.ts",
+        "src/**/*.test.tsx",
+        "src/**/*.spec.ts",
+        "src/**/*.spec.tsx",
+    ]),
+    deps = [":frontend-app"],
+)

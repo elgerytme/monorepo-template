@@ -1,0 +1,52 @@
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+
+  - name: 'system-health'
+    orgId: 1
+    folder: 'System Health'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/system-health.json
+
+  - name: 'build-deployment'
+    orgId: 1
+    folder: 'Build & Deployment'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/build-deployment-metrics.json
+
+  - name: 'security-compliance'
+    orgId: 1
+    folder: 'Security & Compliance'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/security-compliance.json
+
+  - name: 'developer-productivity'
+    orgId: 1
+    folder: 'Developer Productivity'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/developer-productivity.json
