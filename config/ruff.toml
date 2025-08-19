@@ -1,0 +1,67 @@
+# Ruff configuration for Python linting and formatting
+# Ruff is a fast Rust-based Python linter and formatter
+
+# Enable all rules by default, then disable specific ones
+select = ["ALL"]
+
+# Disable rules that are too strict or conflict with our style
+ignore = [
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "D105",    # Missing docstring in magic method
+    "ANN101",  # Missing type annotation for self
+    "ANN102",  # Missing type annotation for cls
+    "COM812",  # Trailing comma missing (conflicts with formatter)
+    "ISC001",  # Implicitly concatenated string literals (conflicts with formatter)
+]
+
+# Assume Python 3.11+
+target-version = "py311"
+
+# Line length to match Black's default
+line-length = 88
+
+# Directories to exclude
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+[format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Use spaces around operators
+indent-style = "space"
+
+# Skip magic trailing comma
+skip-magic-trailing-comma = false
+
+[lint.per-file-ignores]
+# Ignore specific rules in test files
+"**/test_*.py" = ["S101", "PLR2004", "SLF001"]
+"**/tests/*.py" = ["S101", "PLR2004", "SLF001"]
+
+# Ignore import rules in __init__.py files
+"**/__init__.py" = ["F401", "F403"]
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.isort]
+known-first-party = ["libs", "apps", "tools"]
+force-single-line = false
+combine-as-imports = true

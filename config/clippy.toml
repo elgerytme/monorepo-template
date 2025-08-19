@@ -1,0 +1,47 @@
+# Clippy configuration for comprehensive linting
+
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Cyclomatic complexity threshold  
+cyclomatic-complexity-threshold = 7
+
+# Documentation requirements
+missing-docs-in-crate-items = true
+
+# Performance lints
+too-many-arguments-threshold = 7
+too-many-lines-threshold = 100
+large-type-threshold = 200
+trivial-copy-size-limit = 128
+
+# Style preferences
+enum-variant-name-threshold = 3
+literal-representation-threshold = 10
+
+# Security and correctness
+avoid-breaking-exported-api = true
+msrv = "1.70.0"
+
+# Allowed lints (use sparingly)
+# allowed-lints = []
+
+# Disallowed names (encourage better naming)
+disallowed-names = ["foo", "bar", "baz", "test", "tmp"]
+
+# Function length limits
+too-many-lines-threshold = 100
+
+# Arithmetic operation safety
+arithmetic-side-effects-allowed = []
+arithmetic-side-effects-allowed-binary = []
+arithmetic-side-effects-allowed-unary = []
+
+# String literal threshold for suggesting constants
+upper-case-acronyms-aggressive = true
+
+# Blacklisted names to avoid
+blacklisted-names = ["foo", "bar", "baz", "test"]
+
+# Verbose bit mask threshold
+verbose-bit-mask-threshold = 1

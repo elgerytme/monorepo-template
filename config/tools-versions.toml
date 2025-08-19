@@ -1,0 +1,33 @@
+# Tool versions configuration
+# Use "latest" for the most recent version or specify exact versions
+
+[tools]
+rust = "1.75.0"
+buck2 = "latest"
+node = "20.10.0"
+go = "1.21.5"
+python = "3.11"
+
+# Rust tools
+rg = "latest"
+fd = "latest"
+bat = "latest"
+exa = "latest"
+tokei = "latest"
+hyperfine = "latest"
+watchexec = "latest"
+typos = "latest"
+dprint = "latest"
+just = "latest"
+cargo-nextest = "latest"
+cargo-audit = "latest"
+cargo-deny = "latest"
+
+# Language-specific tools
+typescript = "latest"
+eslint = "latest"
+prettier = "latest"
+black = "latest"
+flake8 = "latest"
+mypy = "latest"
+pytest = "latest"

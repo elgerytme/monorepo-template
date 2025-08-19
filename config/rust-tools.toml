@@ -1,0 +1,39 @@
+# Rust tooling configuration integration
+
+[toolchain]
+config_file = "config/rust-toolchain.toml"
+required_components = ["rustfmt", "clippy", "rust-src", "rust-analyzer"]
+
+[formatting]
+config_file = "config/rustfmt.toml"
+check_command = "cargo fmt --check"
+fix_command = "cargo fmt"
+
+[linting]
+config_file = "config/clippy.toml"
+check_command = "cargo clippy --all-targets --all-features -- -D warnings"
+fix_command = "cargo clippy --fix --all-targets --all-features"
+
+[security]
+config_file = "config/audit.toml"
+audit_command = "cargo audit --config config/audit.toml"
+update_command = "cargo audit --config config/audit.toml --db-update"
+scripts = [
+    "scripts/security-audit.sh",
+    "scripts/security-audit.ps1"
+]
+
+[integration]
+# Pre-commit hooks
+pre_commit_checks = [
+    "cargo fmt --check",
+    "cargo clippy --all-targets --all-features -- -D warnings",
+    "cargo audit --config config/audit.toml"
+]
+
+# CI/CD pipeline checks
+ci_checks = [
+    "cargo fmt --check --verbose",
+    "cargo clippy --all-targets --all-features --verbose -- -D warnings",
+    "cargo audit --config config/audit.toml --json"
+]

@@ -1,0 +1,61 @@
+# Nextest configuration for comprehensive unit testing
+# https://nexte.st/book/configuration.html
+
+[profile.default]
+# Number of retries for failing tests
+retries = 1
+
+# Test timeout settings
+slow-timeout = { period = "60s", terminate-after = 2 }
+leak-timeout = "100ms"
+
+# Test execution settings
+test-threads = "num-cpus"
+failure-output = "immediate-final"
+success-output = "never"
+status-level = "retry"
+
+# JUnit XML output for CI integration
+junit.path = "target/nextest/junit.xml"
+
+[profile.ci]
+# CI-specific profile with more verbose output
+retries = 2
+failure-output = "immediate-final"
+success-output = "final"
+status-level = "all"
+
+# Enable coverage collection in CI
+coverage = true
+
+# Longer timeouts for CI environment
+slow-timeout = { period = "120s", terminate-after = 3 }
+
+[profile.coverage]
+# Profile for coverage collection
+retries = 0
+test-threads = 1
+failure-output = "immediate-final"
+success-output = "never"
+
+[test-groups]
+# Group integration tests separately
+integration = { max-threads = 4 }
+unit = { max-threads = "num-cpus" }
+
+# Security tests run in isolation
+security = { max-threads = 1 }
+
+[profile.default.overrides]
+# Override settings for specific test patterns
+filter = 'test(integration)'
+test-group = 'integration'
+
+[[profile.default.overrides]]
+filter = 'test(security)'
+test-group = 'security'
+retries = 0
+
+[[profile.default.overrides]]
+filter = 'test(unit)'
+test-group = 'unit'

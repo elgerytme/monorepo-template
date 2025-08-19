@@ -1,0 +1,157 @@
+# Monitoring and Metrics Configuration
+# Defines metrics collection, exporters, and dashboard settings
+
+[general]
+# Global monitoring settings
+enabled = true
+collection_interval = "15s"
+retention_period = "30d"
+export_format = "prometheus"
+
+[system_health]
+# System health monitoring configuration
+enabled = true
+metrics = [
+    "cpu_usage",
+    "memory_usage", 
+    "disk_usage",
+    "network_io",
+    "load_average",
+    "service_uptime"
+]
+collection_interval = "30s"
+alert_thresholds = { cpu = 90, memory = 95, disk = 95 }
+
+[build_deployment]
+# Build and deployment metrics
+enabled = true
+metrics = [
+    "build_success_rate",
+    "build_duration",
+    "deployment_frequency",
+    "deployment_success_rate",
+    "test_coverage",
+    "rollback_rate",
+    "lead_time",
+    "recovery_time"
+]
+collection_interval = "1m"
+retention_period = "90d"
+
+[security_compliance]
+# Security and compliance metrics
+enabled = true
+metrics = [
+    "vulnerability_count",
+    "security_scan_results",
+    "compliance_score",
+    "security_incidents",
+    "secret_detection_events",
+    "container_scan_results",
+    "policy_violations",
+    "remediation_time"
+]
+collection_interval = "5m"
+alert_on_critical = true
+compliance_standards = ["SOC2", "ISO27001", "PCI-DSS"]
+
+[developer_productivity]
+# Developer productivity metrics
+enabled = true
+metrics = [
+    "commit_frequency",
+    "pull_request_cycle_time",
+    "code_review_time",
+    "lines_of_code_changed",
+    "build_frequency",
+    "test_execution_time",
+    "code_quality_score",
+    "rework_rate",
+    "documentation_coverage"
+]
+collection_interval = "5m"
+anonymize_personal_data = true
+
+[exporters]
+# Metrics exporters configuration
+
+[exporters.prometheus]
+enabled = true
+port = 9090
+path = "/metrics"
+scrape_interval = "15s"
+
+[exporters.grafana]
+enabled = true
+port = 3000
+datasource_url = "http://prometheus:9090"
+dashboard_refresh = "30s"
+
+[exporters.custom]
+# Custom metrics exporters
+build_metrics_port = 8080
+security_metrics_port = 8081
+productivity_metrics_port = 8082
+
+[alerting]
+# Alerting configuration
+enabled = true
+notification_channels = ["slack", "email", "pagerduty"]
+
+[alerting.rules]
+# Alert rules
+critical_vulnerability = { threshold = 1, severity = "critical" }
+build_failure_rate = { threshold = 10, window = "1h", severity = "warning" }
+deployment_failure = { threshold = 1, severity = "critical" }
+system_down = { threshold = 1, severity = "critical" }
+high_cpu_usage = { threshold = 90, window = "5m", severity = "warning" }
+high_memory_usage = { threshold = 95, window = "5m", severity = "critical" }
+
+[dashboards]
+# Dashboard configuration
+auto_refresh = true
+default_time_range = "1h"
+theme = "dark"
+
+[dashboards.system_health]
+enabled = true
+refresh_interval = "30s"
+panels = ["cpu", "memory", "disk", "network", "load", "uptime"]
+
+[dashboards.build_deployment]
+enabled = true
+refresh_interval = "1m"
+panels = ["success_rate", "duration", "frequency", "coverage", "rollbacks"]
+
+[dashboards.security_compliance]
+enabled = true
+refresh_interval = "5m"
+panels = ["vulnerabilities", "scans", "compliance", "incidents"]
+
+[dashboards.developer_productivity]
+enabled = true
+refresh_interval = "5m"
+panels = ["commits", "prs", "reviews", "velocity", "quality"]
+
+[data_sources]
+# Data source configurations
+
+[data_sources.git]
+enabled = true
+repositories = ["*"]
+metrics = ["commits", "pull_requests", "authors", "lines_changed"]
+
+[data_sources.ci_cd]
+enabled = true
+systems = ["github_actions", "jenkins", "gitlab_ci"]
+metrics = ["builds", "deployments", "tests", "artifacts"]
+
+[data_sources.security_tools]
+enabled = true
+tools = ["cargo_audit", "semgrep", "trivy", "gitleaks"]
+metrics = ["vulnerabilities", "scans", "policies", "incidents"]
+
+[data_sources.infrastructure]
+enabled = true
+providers = ["aws", "gcp", "azure", "kubernetes"]
+metrics = ["resources", "costs", "performance", "availability"]

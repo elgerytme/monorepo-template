@@ -1,0 +1,97 @@
+# Cargo audit configuration
+# This file configures security vulnerability scanning for Rust dependencies
+
+[database]
+# Path to the advisory database
+path = "~/.cargo/advisory-db"
+# URL for the advisory database
+url = "https://github.com/RustSec/advisory-db.git"
+# Fetch advisories from the database
+fetch = true
+
+[output]
+# Output format: "human", "json", "toml"
+format = "human"
+# Show informational advisories
+show-info = false
+# Deny warnings (treat as errors)
+deny-warnings = false
+
+[advisories]
+# Ignore specific advisory IDs (use with caution)
+ignore = [
+    # Example: "RUSTSEC-2020-0001"
+]
+
+# Ignore advisories for specific packages
+# Use this sparingly and only after security review
+[advisories.ignore]
+# Example:
+# "package-name" = ["RUSTSEC-2020-0001"]
+
+[bans]
+# Deny specific crates
+deny = [
+    # Example banned crates with known security issues
+    # { name = "openssl", version = "< 0.10.55" }
+]
+
+# Allow specific crates that would otherwise be denied
+allow = [
+    # Example: Allow specific versions after security review
+    # { name = "some-crate", version = "= 1.0.0" }
+]
+
+# Deny multiple versions of the same crate
+multiple-versions = "warn"
+
+# Deny wildcards in dependencies
+wildcards = "deny"
+
+[licenses]
+# Allowed licenses
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+    "CC0-1.0",
+    "MPL-2.0",
+    "LGPL-2.1",
+    "LGPL-3.0",
+]
+
+# Denied licenses
+deny = [
+    "GPL-3.0",
+    "AGPL-3.0",
+    "SSPL-1.0",
+    "Commons-Clause",
+]
+
+# Confidence threshold for license detection
+confidence-threshold = 0.8
+
+# Allow licenses only for specific crates
+[licenses.allow-osi-fsf-libre]
+# Allow OSI/FSF approved licenses
+osi = true
+fsf = true
+# Allow deprecated licenses
+deprecated = false
+
+[sources]
+# Allow crates from these sources
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
+
+# Deny crates from these sources
+deny-registry = []
+deny-git = []
+
+# Unknown registry handling
+unknown-registry = "deny"
+unknown-git = "deny"

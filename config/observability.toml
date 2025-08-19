@@ -1,0 +1,55 @@
+# Observability Configuration
+# This file defines the standardized observability settings for the monorepo
+
+[metrics]
+# Prometheus metrics configuration
+enabled = true
+port = 9090
+path = "/metrics"
+collection_interval = "15s"
+
+# Rust-based exporters
+[metrics.exporters]
+prometheus = { enabled = true, port = 9090 }
+jaeger = { enabled = true, endpoint = "http://localhost:14268/api/traces" }
+
+[logging]
+# Structured logging with tracing integration
+level = "info"
+format = "json"
+output = "stdout"
+
+# Tracing configuration
+[logging.tracing]
+enabled = true
+service_name = "monorepo-service"
+sample_rate = 1.0
+
+[tracing]
+# OpenTelemetry distributed tracing
+enabled = true
+endpoint = "http://localhost:4317"
+protocol = "grpc"
+
+[tracing.resource]
+service_name = "monorepo-template"
+service_version = "1.0.0"
+deployment_environment = "development"
+
+[alerting]
+# Automated alerting configuration
+enabled = true
+webhook_url = "http://localhost:9093/api/v1/alerts"
+
+# Health check thresholds
+[alerting.thresholds]
+cpu_usage = 80.0
+memory_usage = 85.0
+disk_usage = 90.0
+error_rate = 5.0
+response_time_p99 = 1000  # milliseconds
+
+[alerting.security]
+failed_auth_threshold = 10
+suspicious_activity_threshold = 5
+vulnerability_scan_failures = true

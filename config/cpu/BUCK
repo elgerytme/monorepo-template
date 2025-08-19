@@ -1,0 +1,15 @@
+load("@prelude//platforms:defs.bzl", "constraint_setting", "constraint_value")
+
+constraint_setting(
+    name = "cpu",
+)
+
+constraint_value(
+    name = "x86_64",
+    constraint_setting = ":cpu",
+)
+
+constraint_value(
+    name = "arm64", 
+    constraint_setting = ":cpu",
+)

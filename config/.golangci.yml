@@ -1,0 +1,173 @@
+# golangci-lint configuration for Go projects
+# Comprehensive linting rules for Go code quality
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  skip-dirs:
+    - vendor
+    - node_modules
+    - .git
+  skip-files:
+    - ".*\\.pb\\.go$"
+    - ".*_generated\\.go$"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  govet:
+    check-shadowing: true
+    enable-all: true
+  
+  golint:
+    min-confidence: 0.8
+  
+  gocyclo:
+    min-complexity: 15
+  
+  maligned:
+    suggest-new: true
+  
+  dupl:
+    threshold: 100
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  lll:
+    line-length: 120
+  
+  goimports:
+    local-prefixes: github.com/company/monorepo
+  
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+  
+  funlen:
+    lines: 100
+    statements: 50
+  
+  gci:
+    local-prefixes: github.com/company/monorepo
+  
+  godox:
+    keywords:
+      - NOTE
+      - OPTIMIZE
+      - HACK
+  
+  errorlint:
+    errorf: true
+  
+  exhaustive:
+    default-signifies-exhaustive: false
+  
+  forbidigo:
+    forbid:
+      - ^print.*$
+      - 'fmt\.Print.*'
+  
+  godot:
+    scope: declarations
+    capital: false
+  
+  varnamelen:
+    min-name-length: 2
+    ignore-type-assert-ok: true
+    ignore-map-index-ok: true
+    ignore-chan-recv-ok: true
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - funlen
+    - gci
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - nakedret
+    - nilerr
+    - nlreturn
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
+    - revive
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - varnamelen
+    - whitespace
+    - wsl
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gomnd
+        - funlen
+        - goconst
+    
+    - path: cmd/
+      linters:
+        - gochecknoinits
+    
+    - linters:
+        - lll
+      source: "^//go:generate "
+  
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

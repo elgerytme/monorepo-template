@@ -1,0 +1,28 @@
+load("@prelude//platforms:defs.bzl", "execution_platform", "platform")
+
+# Platform detector for automatic platform selection
+platform(
+    name = "detector",
+    constraint_values = [],
+)
+
+# Linux x86_64 platform
+execution_platform(
+    name = "linux_x86_64",
+    cpu_configuration = "config//cpu:x86_64",
+    os_configuration = "config//os:linux",
+)
+
+# macOS ARM64 platform  
+execution_platform(
+    name = "macos_arm64",
+    cpu_configuration = "config//cpu:arm64",
+    os_configuration = "config//os:macos",
+)
+
+# Windows x86_64 platform
+execution_platform(
+    name = "windows_x86_64", 
+    cpu_configuration = "config//cpu:x86_64",
+    os_configuration = "config//os:windows",
+)
