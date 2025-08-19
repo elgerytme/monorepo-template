@@ -1,0 +1,39 @@
+[buildfile]
+name = BUCK
+
+[parser]
+target_platform_detector_spec = config//platforms:detector
+
+[rust]
+rustc_flags = --cap-lints=warn
+edition = 2021
+
+[test]
+# Use nextest for Rust tests
+rust_test_runner = nextest
+
+[build]
+# Enable incremental builds
+incremental_enabled = true
+
+[cache]
+# Enable build caching
+mode = readwrite
+
+[ui]
+# Improved build output
+superconsole = enabled
+
+[project]
+# Project-specific settings
+ignore = .git
+
+[repositories]
+root = .
+prelude = prelude
+toolchains = toolchains
+
+[repository_aliases]
+config = root
+prelude = prelude
+toolchains = toolchains
