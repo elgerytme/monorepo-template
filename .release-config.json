@@ -1,0 +1,39 @@
+{
+    "release": {
+        "auto_version": true,
+        "generate_release_notes": true,
+        "sign_artifacts": true,
+        "enable_rollback": true,
+        "health_checks": ["basic"],
+        "health_check_timeout": 300,
+        "pre_release_hooks": [
+            "scripts/quality/quality-gates.ps1",
+            "scripts/security/vulnerability-scan.ps1"
+        ],
+        "post_release_hooks": [
+            "scripts/setup/health-check.ps1"
+        ],
+        "notification": {
+            "enabled": false,
+            "webhook_url": "",
+            "channels": []
+        }
+    },
+    "artifacts": {
+        "build_command": "just build-all",
+        "output_directory": "./artifacts",
+        "include_patterns": ["*.tar.gz", "*.zip", "*.deb", "*.rpm", "*.exe", "*.msi"],
+        "exclude_patterns": ["*.tmp", "*.log", "*.pdb"]
+    },
+    "signing": {
+        "gpg_key_id": "",
+        "cosign_enabled": true,
+        "verify_signatures": true
+    },
+    "rollback": {
+        "enabled": true,
+        "auto_rollback": true,
+        "rollback_types": ["git", "container"],
+        "health_check_retries": 3
+    }
+}

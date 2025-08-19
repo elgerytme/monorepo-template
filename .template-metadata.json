@@ -1,0 +1,222 @@
+{
+  "name": "monorepo-template",
+  "version": "0.1.0",
+  "description": "Enterprise-grade monorepo template with Buck2 build system and Rust-based tooling",
+  "keywords": [
+    "monorepo",
+    "buck2",
+    "rust",
+    "typescript",
+    "python",
+    "go",
+    "ci-cd",
+    "devcontainer",
+    "template"
+  ],
+  "category": "monorepo",
+  "languages": [
+    {
+      "name": "rust",
+      "primary": true,
+      "version": ">=1.70.0"
+    },
+    {
+      "name": "typescript",
+      "primary": false,
+      "version": ">=4.9.0"
+    },
+    {
+      "name": "python",
+      "primary": false,
+      "version": ">=3.9.0"
+    },
+    {
+      "name": "go",
+      "primary": false,
+      "version": ">=1.19.0"
+    }
+  ],
+  "features": [
+    {
+      "name": "buck2-build-system",
+      "description": "Fast, reliable builds with Buck2",
+      "required": true
+    },
+    {
+      "name": "rust-tooling",
+      "description": "Rust-based development tools (ripgrep, fd, clippy, rustfmt)",
+      "required": true
+    },
+    {
+      "name": "ci-cd-pipelines",
+      "description": "GitHub Actions workflows for CI/CD",
+      "required": false
+    },
+    {
+      "name": "development-containers",
+      "description": "VS Code dev containers with pre-configured environment",
+      "required": false
+    },
+    {
+      "name": "security-scanning",
+      "description": "Automated security vulnerability scanning",
+      "required": false
+    },
+    {
+      "name": "observability",
+      "description": "Monitoring, logging, and tracing setup",
+      "required": false
+    },
+    {
+      "name": "documentation",
+      "description": "Comprehensive documentation and examples",
+      "required": false
+    }
+  ],
+  "requirements": {
+    "system": {
+      "os": ["linux", "macos", "windows"],
+      "memory": "4GB",
+      "disk": "2GB"
+    },
+    "tools": {
+      "buck2": {
+        "version": ">=2024.01.01",
+        "required": true,
+        "install_url": "https://buck2.build/docs/getting_started/"
+      },
+      "rust": {
+        "version": ">=1.70.0",
+        "required": true,
+        "install_url": "https://rustup.rs/"
+      },
+      "git": {
+        "version": ">=2.30.0",
+        "required": true,
+        "install_url": "https://git-scm.com/"
+      },
+      "docker": {
+        "version": ">=20.10.0",
+        "required": false,
+        "install_url": "https://docs.docker.com/get-docker/"
+      },
+      "node": {
+        "version": ">=18.0.0",
+        "required": false,
+        "install_url": "https://nodejs.org/"
+      },
+      "python": {
+        "version": ">=3.9.0",
+        "required": false,
+        "install_url": "https://python.org/"
+      },
+      "go": {
+        "version": ">=1.19.0",
+        "required": false,
+        "install_url": "https://golang.org/"
+      }
+    }
+  },
+  "structure": {
+    "apps": "Application services and executables",
+    "libs": "Shared libraries and common code",
+    "tools": "Development and build tools",
+    "infra": "Infrastructure as code",
+    "docs": "Documentation and guides",
+    "scripts": "Automation and utility scripts",
+    "config": "Configuration files and templates",
+    "examples": "Example projects and demonstrations",
+    ".github": "GitHub workflows and templates",
+    ".devcontainer": "Development container configuration"
+  },
+  "customization": {
+    "project_name": {
+      "description": "Name of your project",
+      "type": "string",
+      "required": true,
+      "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$"
+    },
+    "organization": {
+      "description": "Organization or company name",
+      "type": "string",
+      "required": true
+    },
+    "languages": {
+      "description": "Programming languages to include",
+      "type": "array",
+      "items": ["rust", "typescript", "python", "go"],
+      "default": ["rust"]
+    },
+    "enable_frontend": {
+      "description": "Include frontend application template",
+      "type": "boolean",
+      "default": false
+    },
+    "enable_backend": {
+      "description": "Include backend services template",
+      "type": "boolean",
+      "default": true
+    },
+    "enable_infrastructure": {
+      "description": "Include infrastructure templates",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/monorepo-template.git",
+    "directory": ".",
+    "branch": "main"
+  },
+  "documentation": {
+    "readme": "README.md",
+    "getting_started": "docs/onboarding/README.md",
+    "architecture": "docs/architecture/README.md",
+    "migration": "docs/migration/MIGRATION_GUIDE.md",
+    "api": "docs/api/"
+  },
+  "examples": [
+    {
+      "name": "web-service",
+      "description": "Rust web service with Axum",
+      "path": "examples/web-service",
+      "language": "rust"
+    },
+    {
+      "name": "frontend-app",
+      "description": "TypeScript React application",
+      "path": "examples/frontend-app",
+      "language": "typescript"
+    },
+    {
+      "name": "shared-library",
+      "description": "Cross-language shared library",
+      "path": "examples/shared-library",
+      "language": "rust"
+    },
+    {
+      "name": "infrastructure",
+      "description": "Infrastructure as code examples",
+      "path": "examples/infrastructure",
+      "language": "terraform"
+    }
+  ],
+  "license": "MIT",
+  "maintainers": [
+    {
+      "name": "Template Team",
+      "email": "template-team@your-org.com",
+      "role": "maintainer"
+    }
+  ],
+  "created": "2024-01-01T00:00:00Z",
+  "updated": "2024-01-01T00:00:00Z",
+  "tags": [
+    "enterprise",
+    "production-ready",
+    "scalable",
+    "secure",
+    "observable"
+  ]
+}
