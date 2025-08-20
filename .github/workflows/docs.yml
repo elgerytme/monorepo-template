@@ -242,7 +242,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Download documentation artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: documentation
           path: target/docs/
@@ -281,7 +281,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Download documentation artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: documentation
           path: target/docs/
