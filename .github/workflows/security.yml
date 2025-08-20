@@ -62,7 +62,7 @@ jobs:
           ./scripts/security/run-all-security-checks.sh --fail-fast
 
       - name: Upload security assessment report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-assessment-report
@@ -100,7 +100,7 @@ jobs:
         run: ./scripts/security/vulnerability-scan.sh
 
       - name: Upload audit results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: dependency-audit-results
@@ -144,7 +144,7 @@ jobs:
           cargo geiger
 
       - name: Upload static analysis results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: static-analysis-results
@@ -266,7 +266,7 @@ jobs:
           cargo deny check licenses
 
       - name: Upload license report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: license-compliance-report
@@ -332,7 +332,7 @@ jobs:
           EOF
 
       - name: Upload comprehensive security summary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: comprehensive-security-summary

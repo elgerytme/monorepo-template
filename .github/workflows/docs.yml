@@ -87,7 +87,7 @@ jobs:
           find target/docs -name "*.html" -exec grep -l "href.*#.*not.*found" {} \; || true
       
       - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: target/docs/

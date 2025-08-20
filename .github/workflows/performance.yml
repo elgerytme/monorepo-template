@@ -58,7 +58,7 @@ jobs:
           hyperfine --warmup 1 --runs 3 'buck2 clean && buck2 build //...' --export-json build-benchmark.json
 
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: |
@@ -114,7 +114,7 @@ jobs:
           fi
 
       - name: Upload load test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: load-test-results
@@ -244,7 +244,7 @@ jobs:
           echo "Resource monitoring completed"
 
       - name: Upload monitoring results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: resource-monitoring
           path: |
