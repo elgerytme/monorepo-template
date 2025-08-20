@@ -51,7 +51,7 @@ jobs:
           npm install -g typedoc swagger-codegen-cli
           
       - name: Cache Rust dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/

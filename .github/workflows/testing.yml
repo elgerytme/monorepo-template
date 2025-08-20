@@ -33,7 +33,7 @@ jobs:
         run: cargo install cargo-nextest
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -94,7 +94,7 @@ jobs:
         run: cargo install cargo-nextest
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -128,7 +128,7 @@ jobs:
           sudo mv buck2 /usr/local/bin/
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -167,7 +167,7 @@ jobs:
         run: cargo install cargo-audit
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -222,7 +222,7 @@ jobs:
           cargo install grcov
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -297,7 +297,7 @@ jobs:
         run: cargo install cargo-nextest
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
