@@ -139,7 +139,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download deployment package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6
         with:
           name: deployment-package-${{ needs.pre-deploy.outputs.version }}
 
@@ -180,7 +180,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download deployment package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6
         with:
           name: deployment-package-${{ needs.pre-deploy.outputs.version }}
 
@@ -220,7 +220,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download deployment package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v6
         with:
           name: deployment-package-${{ needs.pre-deploy.outputs.version }}
 
