@@ -114,7 +114,7 @@ jobs:
           echo "Artifact signing would happen here with proper keys"
 
       - name: Upload deployment package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: deployment-package-${{ needs.pre-deploy.outputs.version }}
           path: |
